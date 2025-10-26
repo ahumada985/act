@@ -1,10 +1,10 @@
 // Service Worker personalizado para ACT Reportes
-// Versión 2.2.0
+// Versión 2.4.0 - Fix offline con cierre forzado
 
 // Workbox manifest injection point
 const WB_MANIFEST = self.__WB_MANIFEST || [];
 
-const CACHE_NAME = 'act-reportes-v2.2.0';
+const CACHE_NAME = 'act-reportes-v2.4.0';
 const PRECACHE_URLS = [
   '/',
   '/offline',
@@ -22,7 +22,7 @@ const PRECACHE_URLS = [
 
 // Instalación: Cachear recursos críticos inmediatamente
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v2.2.0');
+  console.log('[SW] Installing service worker v2.4.0');
 
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -37,7 +37,7 @@ self.addEventListener('install', (event) => {
 
 // Activación: Limpiar cachés viejos
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v2.2.0');
+  console.log('[SW] Activating service worker v2.4.0');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -56,7 +56,7 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch: Estrategia Network First con fallback a cache
+// Fetch: Estrategia Cache First para páginas, Network First para API
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -71,40 +71,74 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  event.respondWith(
-    // Intentar red primero
-    fetch(request, { timeout: 5000 })
-      .then((response) => {
-        // Si la respuesta es válida, guardarla en caché
-        if (response && response.status === 200) {
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(request, responseToCache);
+  // ESTRATEGIA CACHE FIRST para navegación y assets estáticos
+  // Esto asegura que funcione offline incluso sin red
+  if (request.mode === 'navigate' || request.destination === 'document' ||
+      request.destination === 'script' || request.destination === 'style' ||
+      request.destination === 'image') {
+
+    event.respondWith(
+      caches.match(request).then((cachedResponse) => {
+        if (cachedResponse) {
+          console.log('[SW] ✅ Cache HIT:', request.url);
+
+          // Actualizar en background si hay red
+          fetch(request).then((response) => {
+            if (response && response.status === 200) {
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, response);
+              });
+            }
+          }).catch(() => {
+            // Sin red, pero ya servimos desde cache
           });
+
+          return cachedResponse;
         }
-        return response;
-      })
-      .catch(() => {
-        // Si falla la red, intentar caché
-        return caches.match(request).then((cachedResponse) => {
-          if (cachedResponse) {
-            console.log('[SW] Serving from cache:', request.url);
-            return cachedResponse;
-          }
 
-          // Si no hay en caché y es una navegación, mostrar página offline
-          if (request.mode === 'navigate') {
-            return caches.match('/offline');
-          }
-
-          // Para otros recursos, retornar error
-          return new Response('Network error', {
-            status: 408,
-            headers: { 'Content-Type': 'text/plain' },
+        // No está en caché, intentar red
+        console.log('[SW] ⚠️ Cache MISS, trying network:', request.url);
+        return fetch(request)
+          .then((response) => {
+            if (response && response.status === 200) {
+              const responseToCache = response.clone();
+              caches.open(CACHE_NAME).then((cache) => {
+                cache.put(request, responseToCache);
+              });
+            }
+            return response;
+          })
+          .catch(() => {
+            // Sin caché y sin red
+            if (request.mode === 'navigate') {
+              console.log('[SW] ❌ No cache, no network, showing /offline');
+              return caches.match('/offline');
+            }
+            return new Response('Network error', {
+              status: 408,
+              headers: { 'Content-Type': 'text/plain' },
+            });
           });
-        });
       })
-  );
+    );
+  } else {
+    // Para otros requests (API, etc), Network First
+    event.respondWith(
+      fetch(request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => {
+              cache.put(request, responseToCache);
+            });
+          }
+          return response;
+        })
+        .catch(() => {
+          return caches.match(request);
+        })
+    );
+  }
 });
 
 // Mensaje: Permitir comunicación con la página
@@ -123,4 +157,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[SW] Service Worker v2.2.0 loaded');
+console.log('[SW] Service Worker v2.4.0 loaded - Cache First Strategy');
