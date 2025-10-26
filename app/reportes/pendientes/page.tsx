@@ -73,12 +73,18 @@ export default function ReportesPendientesPage() {
         .from('Reporte')
         .insert({
           tipoTrabajo: reporte.tipoTrabajo,
-          supervisorId: reporte.supervisorId,
+          clienteFinal: "",
+          ordenTrabajo: "",
           proyectoId: reporte.proyectoId || null,
-          descripcion: reporte.descripcion,
-          observaciones: reporte.observaciones,
+          proyecto: "",
+          descripcion: reporte.descripcion || "",
+          observaciones: reporte.observaciones || "",
+          direccion: "",
+          comuna: "",
+          region: "",
           latitud: reporte.coordenadas?.lat || null,
           longitud: reporte.coordenadas?.lng || null,
+          supervisorId: reporte.supervisorId,
           status: "ENVIADO",
         })
         .select()
