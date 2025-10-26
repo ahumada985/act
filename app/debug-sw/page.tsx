@@ -94,18 +94,40 @@ export default function DebugSW() {
   const handleForceActivate = async () => {
     addLog("🔄 Forzando activación de SW...");
     const registration = await navigator.serviceWorker.getRegistration();
-    if (registration) {
-      if (registration.waiting) {
-        registration.waiting.postMessage({ type: "SKIP_WAITING" });
-        addLog("✅ Mensaje SKIP_WAITING enviado");
-      }
-      if (registration.installing) {
-        addLog("⏳ SW instalando, esperando...");
-      }
-      if (registration.active && !navigator.serviceWorker.controller) {
-        addLog("⚠️ SW activo pero no controla, recargando...");
-        setTimeout(() => window.location.reload(), 1000);
-      }
+    if (!registration) {
+      addLog("❌ No hay SW registrado");
+      return;
+    }
+
+    addLog(`📊 Estado: installing=${!!registration.installing}, waiting=${!!registration.waiting}, active=${!!registration.active}`);
+    addLog(`📊 Controller: ${!!navigator.serviceWorker.controller}`);
+
+    if (registration.waiting) {
+      addLog("✅ Hay SW esperando, enviando SKIP_WAITING...");
+      registration.waiting.postMessage({ type: "SKIP_WAITING" });
+
+      // Esperar a que tome control
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        addLog("✅ ¡SW tomó control! Recargando...");
+        window.location.reload();
+      });
+    } else if (registration.installing) {
+      addLog("⏳ SW todavía instalando, esperando que termine...");
+      registration.installing.addEventListener('statechange', function() {
+        addLog(`📊 Nuevo estado: ${this.state}`);
+        if (this.state === 'installed') {
+          addLog("✅ SW instalado, recargando...");
+          window.location.reload();
+        }
+      });
+    } else if (registration.active && !navigator.serviceWorker.controller) {
+      addLog("⚠️ SW activo pero no controla página, recargando...");
+      window.location.reload();
+    } else if (navigator.serviceWorker.controller) {
+      addLog("✅ ¡SW ya está controlando!");
+    } else {
+      addLog("❓ Estado desconocido, recargando...");
+      window.location.reload();
     }
   };
 
