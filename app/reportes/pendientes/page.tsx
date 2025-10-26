@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useOnlineStatus } from "@/hooks/useOnlineStatus";
 import { useReportesOffline } from "@/hooks/useReportesOffline";
 import { Button } from "@/components/ui/button";
-import { createClient } from "@/lib/supabase/client";
+import { supabase } from "@/lib/supabase/client";
 import { Upload, Trash2, AlertCircle, CheckCircle, Clock, Wifi, WifiOff } from "lucide-react";
 
 export default function ReportesPendientesPage() {
@@ -14,8 +14,6 @@ export default function ReportesPendientesPage() {
   const { reportesPendientes, eliminarReporte, actualizarEstado, recargar } = useReportesOffline();
   const [enviando, setEnviando] = useState(false);
   const [progreso, setProgreso] = useState({ actual: 0, total: 0 });
-
-  const supabase = createClient();
 
   // Enviar un reporte a Supabase
   const enviarReporte = async (reporte: any) => {
