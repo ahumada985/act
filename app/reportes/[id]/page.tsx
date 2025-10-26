@@ -6,18 +6,15 @@ import { supabase } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { formatDateTime } from "@/lib/utils";
-import { PDFDownloadLink } from '@react-pdf/renderer';
-import { ReportePDF } from "@/lib/pdf/reportePDF";
+import { PDFDownloadButton } from "@/components/pdf/PDFDownloadButton";
 import { Header } from "@/components/layout/Header";
 import { ImageLightbox } from "@/components/ui/ImageLightbox";
 import {
   ArrowLeft,
-  Download,
   MapPin,
   Calendar,
   User,
   FileText,
-  Loader2,
   Mic,
   Play,
   Pause,
@@ -248,32 +245,11 @@ export default function ReporteDetallePage() {
               Eliminar
             </Button>
 
-            <PDFDownloadLink
-              document={
-                <ReportePDF
-                  reporte={reporte}
-                  supervisor={reporte.supervisor}
-                  fotos={reporte.fotos}
-                />
-              }
-              fileName={`reporte-${reporte.tipoTrabajo}-${new Date(reporte.createdAt).toISOString().split('T')[0]}.pdf`}
-            >
-              {(params: any) => (
-                <Button className="gap-2" disabled={params.loading}>
-                  {params.loading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Generando PDF...
-                    </>
-                  ) : (
-                    <>
-                      <Download className="h-4 w-4" />
-                      Descargar PDF
-                    </>
-                  )}
-                </Button>
-              )}
-            </PDFDownloadLink>
+            <PDFDownloadButton
+              reporte={reporte}
+              supervisor={reporte.supervisor}
+              fotos={reporte.fotos}
+            />
           </div>
         </div>
 
