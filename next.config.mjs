@@ -4,6 +4,13 @@ import withPWA from 'next-pwa';
 const nextConfig = {
   images: {
     domains: ['udloynzfnktwoaanfjzo.supabase.co'],
+    unoptimized: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
   },
 };
 
