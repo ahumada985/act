@@ -40,6 +40,7 @@ export default function NuevoReportePage() {
   const [loading, setLoading] = useState(false);
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [proyectos, setProyectos] = useState<any[]>([]);
+  const [debugLogs, setDebugLogs] = useState<string[]>([]);
 
   const [formData, setFormData] = useState({
     tipoTrabajo: "",
@@ -122,6 +123,13 @@ export default function NuevoReportePage() {
     setAudios(audios.filter((_, i) => i !== index));
   };
 
+  // Función para agregar logs de debug
+  const addDebugLog = (message: string) => {
+    const timestamp = new Date().toLocaleTimeString();
+    setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`]);
+    console.log(message);
+  };
+
   // Convertir File a base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -139,29 +147,29 @@ export default function NuevoReportePage() {
     try {
       // ===== MODO OFFLINE: Guardar localmente =====
       if (!isOnline) {
-        console.log('[Offline] Guardando reporte localmente...');
+        addDebugLog('🔴 MODO OFFLINE - Guardando localmente...');
 
         // Convertir fotos a base64
-        console.log('[Offline] Convirtiendo fotos a base64...');
+        addDebugLog(`📷 Convirtiendo ${fotos.length} fotos a base64...`);
         const fotosBase64: { data: string; nombre: string }[] = [];
         for (const foto of fotos) {
           const base64 = await fileToBase64(foto);
           fotosBase64.push({ data: base64, nombre: foto.name });
         }
-        console.log('[Offline] ✅ Fotos convertidas:', fotosBase64.length);
+        addDebugLog(`✅ Fotos convertidas: ${fotosBase64.length}`);
 
         // Convertir audio a base64
         let audioBase64: { data: string; nombre: string } | undefined;
         if (audios.length > 0) {
-          console.log('[Offline] Convirtiendo audio a base64...');
+          addDebugLog('🎤 Convirtiendo audio a base64...');
           const audio = audios[0];
           const base64 = await fileToBase64(audio.file);
           audioBase64 = { data: base64, nombre: audio.file.name };
-          console.log('[Offline] ✅ Audio convertido');
+          addDebugLog('✅ Audio convertido');
         }
 
         // Guardar en IndexedDB
-        console.log('[Offline] Guardando en IndexedDB...');
+        addDebugLog('💾 Guardando en IndexedDB...');
         const reporteId = await guardarReporteOffline({
           tipoTrabajo: formData.tipoTrabajo,
           supervisorId: "supervisor-001",
@@ -175,13 +183,13 @@ export default function NuevoReportePage() {
           fotos: fotosBase64,
           audio: audioBase64,
         });
-        console.log('[Offline] ✅ Guardado en IndexedDB con ID:', reporteId);
+        addDebugLog(`✅ Guardado con ID: ${reporteId}`);
 
         alert("✅ Reporte guardado localmente\n\nSe enviará cuando haya conexión.\n\nPuedes ver los reportes pendientes en el menú.");
 
-        console.log('[Offline] Navegando a /reportes/pendientes...');
+        addDebugLog('🔀 Navegando a /reportes/pendientes...');
         router.push("/reportes/pendientes");
-        console.log('[Offline] ✅ Navegación completa');
+        addDebugLog('✅ COMPLETADO');
         return;
       }
 
@@ -266,6 +274,8 @@ export default function NuevoReportePage() {
       router.push("/reportes");
     } catch (error: any) {
       console.error("Error:", error);
+      addDebugLog(`❌ ERROR: ${error.message}`);
+      addDebugLog(`Stack: ${error.stack || 'No stack trace'}`);
       alert("❌ Error al crear reporte: " + error.message);
     } finally {
       setLoading(false);
@@ -642,6 +652,28 @@ export default function NuevoReportePage() {
           onCapture={handleAudioCapture}
           onClose={() => setShowAudio(false)}
         />
+      )}
+
+      {/* Panel de Debug - Solo visible en modo offline */}
+      {!isOnline && debugLogs.length > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 text-white p-4 max-h-64 overflow-y-auto z-50">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold text-sm">📋 Debug Logs</h3>
+            <button
+              onClick={() => setDebugLogs([])}
+              className="text-xs bg-red-500 px-2 py-1 rounded"
+            >
+              Limpiar
+            </button>
+          </div>
+          <div className="space-y-1 text-xs font-mono">
+            {debugLogs.map((log, index) => (
+              <div key={index} className="border-b border-gray-700 pb-1">
+                {log}
+              </div>
+            ))}
+          </div>
+        </div>
       )}
     </div>
   );
