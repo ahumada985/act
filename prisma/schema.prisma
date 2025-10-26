@@ -1,0 +1,170 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserRole {
+  SUPERVISOR
+  ADMIN
+  GERENTE
+}
+
+enum ReportStatus {
+  BORRADOR
+  ENVIADO
+  APROBADO
+  RECHAZADO
+}
+
+enum TipoTrabajo {
+  FIBRA_OPTICA
+  DATA_CENTER
+  ANTENAS
+  CCTV
+  INSTALACION_RED
+  MANTENIMIENTO
+  OTRO
+}
+
+// Modelos
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  nombre        String
+  apellido      String
+  role          UserRole  @default(SUPERVISOR)
+  telefono      String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  reportes      Reporte[]
+
+  @@index([email])
+}
+
+model Reporte {
+  id                String        @id @default(uuid())
+
+  // Metadata
+  fecha             DateTime      @default(now())
+  status            ReportStatus  @default(BORRADOR)
+  tipoTrabajo       TipoTrabajo
+
+  // Ubicación
+  latitud           Float?
+  longitud          Float?
+  direccion         String?
+  comuna            String?
+  region            String?
+
+  // Datos generales
+  clienteFinal      String?
+  ordenTrabajo      String?
+  proyecto          String?
+
+  // Descripción general
+  descripcion       String?
+  observaciones     String?
+
+  // Campos dinámicos específicos por tipo de trabajo (JSON)
+  camposDinamicos   Json?
+
+  // Multimedia
+  fotos             Foto[]
+  audios            Audio[]
+
+  // Relaciones
+  supervisorId      String
+  supervisor        User          @relation(fields: [supervisorId], references: [id])
+
+  consolidados      ConsolidadoSemanal[]
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([supervisorId])
+  @@index([tipoTrabajo])
+  @@index([status])
+  @@index([fecha])
+}
+
+model Foto {
+  id          String   @id @default(uuid())
+  url         String
+  descripcion String?
+  orden       Int      @default(0)
+
+  reporteId   String
+  reporte     Reporte  @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([reporteId])
+}
+
+model Audio {
+  id          String   @id @default(uuid())
+  url         String
+  duracion    Int?     // en segundos
+  transcripcion String? // Para futuro: transcripción automática
+
+  reporteId   String
+  reporte     Reporte  @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+
+  @@index([reporteId])
+}
+
+model ConsolidadoSemanal {
+  id              String    @id @default(uuid())
+
+  semanaInicio    DateTime
+  semanaFin       DateTime
+  anio            Int
+  numeroSemana    Int
+
+  totalReportes   Int       @default(0)
+  tiposTrabajo    Json      // Conteo por tipo de trabajo
+  estadisticas    Json?     // Estadísticas adicionales
+
+  reportes        Reporte[]
+
+  generadoEn      DateTime  @default(now())
+  actualizadoEn   DateTime  @updatedAt
+
+  @@unique([anio, numeroSemana])
+  @@index([semanaInicio, semanaFin])
+}
+
+// Plantillas de formularios dinámicos
+model PlantillaFormulario {
+  id              String      @id @default(uuid())
+
+  tipoTrabajo     TipoTrabajo @unique
+  nombre          String
+  descripcion     String?
+
+  // Campos del formulario en formato JSON
+  campos          Json
+  // Estructura ejemplo:
+  // [
+  //   {
+  //     "id": "km_fibra",
+  //     "tipo": "number",
+  //     "label": "Kilómetros de fibra instalada",
+  //     "requerido": true
+  //   }
+  // ]
+
+  activo          Boolean     @default(true)
+  version         Int         @default(1)
+
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+}
