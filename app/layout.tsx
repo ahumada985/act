@@ -37,11 +37,39 @@ export default function RootLayout({
                 navigator.serviceWorker.register('/sw.js').then(
                   function(registration) {
                     console.log('[PWA] SW registrado:', registration.scope);
+
+                    // Si hay un SW esperando, activarlo
+                    if (registration.waiting) {
+                      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                    }
+
+                    // Si el SW se instaló por primera vez, recargar para activarlo
+                    registration.addEventListener('updatefound', function() {
+                      const newWorker = registration.installing;
+                      if (newWorker) {
+                        newWorker.addEventListener('statechange', function() {
+                          if (newWorker.state === 'activated' && !navigator.serviceWorker.controller) {
+                            console.log('[PWA] SW activado, recargando...');
+                            window.location.reload();
+                          }
+                        });
+                      }
+                    });
                   },
                   function(err) {
                     console.log('[PWA] SW falló:', err);
                   }
                 );
+
+                // Recargar cuando el SW tome control
+                let refreshing = false;
+                navigator.serviceWorker.addEventListener('controllerchange', function() {
+                  if (!refreshing) {
+                    refreshing = true;
+                    console.log('[PWA] SW tomó control, recargando...');
+                    window.location.reload();
+                  }
+                });
               });
             }
           `}
