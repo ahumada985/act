@@ -70,21 +70,55 @@ export default function ReportesPendientesPage() {
 
       // Crear reporte en Supabase
       const { data, error } = await supabase
-        .from('reportes')
+        .from('Reporte')
         .insert({
-          tipo_trabajo: reporte.tipoTrabajo,
-          supervisor_id: reporte.supervisorId,
-          proyecto_id: reporte.proyectoId,
+          tipoTrabajo: reporte.tipoTrabajo,
+          supervisorId: reporte.supervisorId,
+          proyectoId: reporte.proyectoId || null,
           descripcion: reporte.descripcion,
           observaciones: reporte.observaciones,
-          coordenadas: reporte.coordenadas,
-          fotos: fotosUrls,
-          audio: audioUrl,
+          latitud: reporte.coordenadas?.lat || null,
+          longitud: reporte.coordenadas?.lng || null,
+          status: "ENVIADO",
         })
         .select()
         .single();
 
       if (error) throw error;
+
+      // Crear registros de fotos en la tabla Foto
+      if (fotosUrls.length > 0 && data) {
+        const fotosDataInsert = fotosUrls.map((url, index) => ({
+          url,
+          reporteId: data.id,
+          orden: index,
+        }));
+
+        const { error: fotosError } = await supabase
+          .from("Foto")
+          .insert(fotosDataInsert);
+
+        if (fotosError) {
+          console.error('[Envío] Error guardando fotos:', fotosError);
+          // No tirar error, el reporte ya se creó
+        }
+      }
+
+      // Crear registro de audio en la tabla Audio
+      if (audioUrl && data) {
+        const { error: audioError } = await supabase
+          .from("Audio")
+          .insert({
+            url: audioUrl,
+            duracion: 0, // No tenemos la duración guardada en offline
+            reporteId: data.id,
+          });
+
+        if (audioError) {
+          console.error('[Envío] Error guardando audio:', audioError);
+          // No tirar error, el reporte ya se creó
+        }
+      }
 
       // Eliminar de IndexedDB
       await eliminarReporte(reporte.id);
