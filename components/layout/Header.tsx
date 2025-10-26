@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag } from "lucide-react";
+import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload } from "lucide-react";
+import { contarReportesPendientes } from "@/lib/offline-storage";
 
 export function Header() {
   const router = useRouter();
@@ -14,6 +15,25 @@ export function Header() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [reportesPendientes, setReportesPendientes] = useState(0);
+
+  // Cargar contador de reportes pendientes
+  useEffect(() => {
+    cargarContadorPendientes();
+
+    // Recargar cada 5 segundos
+    const interval = setInterval(cargarContadorPendientes, 5000);
+    return () => clearInterval(interval);
+  }, []);
+
+  async function cargarContadorPendientes() {
+    try {
+      const count = await contarReportesPendientes();
+      setReportesPendientes(count);
+    } catch (error) {
+      console.error('Error cargando reportes pendientes:', error);
+    }
+  }
 
   useEffect(() => {
     if (searchTerm.length >= 2) {
@@ -188,6 +208,22 @@ export function Header() {
 
           {/* Navegación */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Reportes Pendientes - Visible siempre si hay reportes */}
+            {reportesPendientes > 0 && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => router.push("/reportes/pendientes")}
+                title="Reportes Pendientes"
+                className="bg-orange-500 hover:bg-orange-600 text-white gap-2 relative"
+              >
+                <Upload className="h-4 w-4" />
+                <span className="hidden sm:inline">Pendientes</span>
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                  {reportesPendientes}
+                </span>
+              </Button>
+            )}
             <Button
               variant="ghost"
               size="sm"
