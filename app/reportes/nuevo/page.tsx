@@ -142,22 +142,27 @@ export default function NuevoReportePage() {
         console.log('[Offline] Guardando reporte localmente...');
 
         // Convertir fotos a base64
+        console.log('[Offline] Convirtiendo fotos a base64...');
         const fotosBase64: { data: string; nombre: string }[] = [];
         for (const foto of fotos) {
           const base64 = await fileToBase64(foto);
           fotosBase64.push({ data: base64, nombre: foto.name });
         }
+        console.log('[Offline] ✅ Fotos convertidas:', fotosBase64.length);
 
         // Convertir audio a base64
         let audioBase64: { data: string; nombre: string } | undefined;
         if (audios.length > 0) {
+          console.log('[Offline] Convirtiendo audio a base64...');
           const audio = audios[0];
           const base64 = await fileToBase64(audio.file);
           audioBase64 = { data: base64, nombre: audio.file.name };
+          console.log('[Offline] ✅ Audio convertido');
         }
 
         // Guardar en IndexedDB
-        await guardarReporteOffline({
+        console.log('[Offline] Guardando en IndexedDB...');
+        const reporteId = await guardarReporteOffline({
           tipoTrabajo: formData.tipoTrabajo,
           supervisorId: "supervisor-001",
           proyectoId: formData.proyectoId || "",
@@ -170,9 +175,13 @@ export default function NuevoReportePage() {
           fotos: fotosBase64,
           audio: audioBase64,
         });
+        console.log('[Offline] ✅ Guardado en IndexedDB con ID:', reporteId);
 
-        alert("✅ Reporte guardado localmente\n\nSe enviará automáticamente cuando haya conexión.\n\nPuedes ver los reportes pendientes en el menú.");
+        alert("✅ Reporte guardado localmente\n\nSe enviará cuando haya conexión.\n\nPuedes ver los reportes pendientes en el menú.");
+
+        console.log('[Offline] Navegando a /reportes/pendientes...');
         router.push("/reportes/pendientes");
+        console.log('[Offline] ✅ Navegación completa');
         return;
       }
 
