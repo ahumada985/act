@@ -34,14 +34,14 @@ export default function ReportesPendientesPage() {
           // Subir a Supabase Storage
           const fileName = `${Date.now()}-${foto.nombre}`;
           const { data: uploadData, error: uploadError } = await supabase.storage
-            .from('fotos-reportes')
+            .from('reportes-fotos')
             .upload(fileName, blob);
 
           if (uploadError) throw uploadError;
 
           // Obtener URL pública
           const { data: urlData } = supabase.storage
-            .from('fotos-reportes')
+            .from('reportes-fotos')
             .getPublicUrl(fileName);
 
           fotosUrls.push(urlData.publicUrl);
@@ -56,13 +56,13 @@ export default function ReportesPendientesPage() {
 
         const fileName = `${Date.now()}-${reporte.audio.nombre}`;
         const { data: uploadData, error: uploadError } = await supabase.storage
-          .from('audio-reportes')
+          .from('reportes-audios')
           .upload(fileName, blob);
 
         if (uploadError) throw uploadError;
 
         const { data: urlData } = supabase.storage
-          .from('audio-reportes')
+          .from('reportes-audios')
           .getPublicUrl(fileName);
 
         audioUrl = urlData.publicUrl;
