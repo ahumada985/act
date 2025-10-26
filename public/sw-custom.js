@@ -1,7 +1,10 @@
 // Service Worker personalizado para ACT Reportes
-// Versión 2.1.0
+// Versión 2.2.0
 
-const CACHE_NAME = 'act-reportes-v2.1.0';
+// Workbox manifest injection point
+const WB_MANIFEST = self.__WB_MANIFEST || [];
+
+const CACHE_NAME = 'act-reportes-v2.2.0';
 const PRECACHE_URLS = [
   '/',
   '/offline',
@@ -14,11 +17,12 @@ const PRECACHE_URLS = [
   '/icon-192x192.png',
   '/icon-512x512.png',
   '/manifest.json',
+  ...WB_MANIFEST.map(entry => entry.url),
 ];
 
 // Instalación: Cachear recursos críticos inmediatamente
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker v2.1.0');
+  console.log('[SW] Installing service worker v2.2.0');
 
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -33,7 +37,7 @@ self.addEventListener('install', (event) => {
 
 // Activación: Limpiar cachés viejos
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating service worker v2.1.0');
+  console.log('[SW] Activating service worker v2.2.0');
 
   event.waitUntil(
     caches.keys().then((cacheNames) => {
@@ -119,4 +123,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[SW] Service Worker v2.1.0 loaded');
+console.log('[SW] Service Worker v2.2.0 loaded');
