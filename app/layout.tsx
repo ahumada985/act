@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { OfflineIndicator } from "@/components/layout/OfflineIndicator";
+import { PrecachePages } from "@/components/pwa/PrecachePages";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
     <html lang="es">
       <body className={inter.className}>
         <OfflineIndicator />
+        <PrecachePages />
         {children}
       </body>
     </html>

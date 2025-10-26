@@ -21,6 +21,9 @@ export default withPWA({
   disable: process.env.NODE_ENV === 'development',
   buildExcludes: [/middleware-manifest\.json$/],
   publicExcludes: ['!robots.txt', '!sitemap.xml'],
+  cacheOnFrontEndNav: true,
+  reloadOnOnline: true,
+  swcMinify: true,
   runtimeCaching: [
     {
       urlPattern: /^https?:\/\/.*\/_next\/static\/.*/,
