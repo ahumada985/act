@@ -23,37 +23,48 @@ export default withPWA({
   publicExcludes: ['!robots.txt', '!sitemap.xml'],
   runtimeCaching: [
     {
-      urlPattern: /^https?.*/,
+      urlPattern: /^https?:\/\/.*\/_next\/static\/.*/,
+      handler: 'CacheFirst',
+      options: {
+        cacheName: 'next-static',
+        expiration: {
+          maxEntries: 200,
+          maxAgeSeconds: 365 * 24 * 60 * 60, // 1 año
+        },
+      },
+    },
+    {
+      urlPattern: /^https?:\/\/.*\/_next\/data\/.*/,
+      handler: 'StaleWhileRevalidate',
+      options: {
+        cacheName: 'next-data',
+        expiration: {
+          maxEntries: 100,
+          maxAgeSeconds: 24 * 60 * 60,
+        },
+      },
+    },
+    {
+      urlPattern: /^https?:\/\/.*/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'offlineCache',
         expiration: {
           maxEntries: 200,
-          maxAgeSeconds: 24 * 60 * 60, // 24 horas
+          maxAgeSeconds: 24 * 60 * 60,
         },
+        networkTimeoutSeconds: 5,
       },
     },
     {
-      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/,
+      urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/,
       handler: 'CacheFirst',
       options: {
         cacheName: 'images',
         expiration: {
           maxEntries: 100,
-          maxAgeSeconds: 30 * 24 * 60 * 60, // 30 días
+          maxAgeSeconds: 30 * 24 * 60 * 60,
         },
-      },
-    },
-    {
-      urlPattern: /api\/.*/,
-      handler: 'NetworkFirst',
-      options: {
-        cacheName: 'apis',
-        expiration: {
-          maxEntries: 50,
-          maxAgeSeconds: 5 * 60, // 5 minutos
-        },
-        networkTimeoutSeconds: 10,
       },
     },
   ],

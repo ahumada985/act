@@ -5,10 +5,6 @@ import { OfflineIndicator } from "@/components/layout/OfflineIndicator";
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const dynamic = 'force-dynamic';
-export const dynamicParams = true;
-export const revalidate = 0;
-
 export const metadata: Metadata = {
   title: "ACT Reportes - Sistema de Reportabilidad",
   description: "Sistema de reportes diarios para supervisores de telecomunicaciones",
