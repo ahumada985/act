@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { OfflineIndicator } from "@/components/layout/OfflineIndicator";
 import { PrecachePages } from "@/components/pwa/PrecachePages";
+import { RegisterSW } from "./register-sw";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,6 +30,7 @@ export default function RootLayout({
   return (
     <html lang="es">
       <body className={inter.className}>
+        <RegisterSW />
         <OfflineIndicator />
         <PrecachePages />
         {children}
