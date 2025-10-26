@@ -91,6 +91,24 @@ export default function DebugSW() {
     window.location.reload();
   };
 
+  const handleForceActivate = async () => {
+    addLog("🔄 Forzando activación de SW...");
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (registration) {
+      if (registration.waiting) {
+        registration.waiting.postMessage({ type: "SKIP_WAITING" });
+        addLog("✅ Mensaje SKIP_WAITING enviado");
+      }
+      if (registration.installing) {
+        addLog("⏳ SW instalando, esperando...");
+      }
+      if (registration.active && !navigator.serviceWorker.controller) {
+        addLog("⚠️ SW activo pero no controla, recargando...");
+        setTimeout(() => window.location.reload(), 1000);
+      }
+    }
+  };
+
   const handleUnregister = async () => {
     const registration = await navigator.serviceWorker.getRegistration();
     if (registration) {
@@ -120,6 +138,12 @@ export default function DebugSW() {
         <div className="bg-white rounded-lg shadow p-4 mb-4">
           <h2 className="font-bold mb-2">Acciones:</h2>
           <div className="flex gap-2 flex-wrap">
+            <button
+              onClick={handleForceActivate}
+              className="bg-green-500 text-white px-4 py-2 rounded font-bold"
+            >
+              ⚡ ACTIVAR SW
+            </button>
             <button
               onClick={handleRefresh}
               className="bg-blue-500 text-white px-4 py-2 rounded"
