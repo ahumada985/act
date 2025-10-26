@@ -29,51 +29,60 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body className={inter.className}>
-        <Script id="register-sw" strategy="afterInteractive">
-          {`
-            if ('serviceWorker' in navigator) {
-              window.addEventListener('load', function() {
-                navigator.serviceWorker.register('/sw.js').then(
-                  function(registration) {
-                    console.log('[PWA] SW registrado:', registration.scope);
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    function(registration) {
+                      console.log('[PWA] ✅ SW registrado:', registration.scope);
 
-                    // Si hay un SW esperando, activarlo
-                    if (registration.waiting) {
-                      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-                    }
+                      // Forzar actualización
+                      registration.update();
 
-                    // Si el SW se instaló por primera vez, recargar para activarlo
-                    registration.addEventListener('updatefound', function() {
-                      const newWorker = registration.installing;
-                      if (newWorker) {
-                        newWorker.addEventListener('statechange', function() {
-                          if (newWorker.state === 'activated' && !navigator.serviceWorker.controller) {
-                            console.log('[PWA] SW activado, recargando...');
-                            window.location.reload();
-                          }
-                        });
+                      // Si hay SW esperando, activarlo
+                      if (registration.waiting) {
+                        console.log('[PWA] SW esperando, activando...');
+                        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
                       }
-                    });
-                  },
-                  function(err) {
-                    console.log('[PWA] SW falló:', err);
-                  }
-                );
 
-                // Recargar cuando el SW tome control
-                let refreshing = false;
-                navigator.serviceWorker.addEventListener('controllerchange', function() {
-                  if (!refreshing) {
-                    refreshing = true;
-                    console.log('[PWA] SW tomó control, recargando...');
-                    window.location.reload();
-                  }
+                      // Listener para cuando se instala
+                      registration.addEventListener('updatefound', function() {
+                        const newWorker = registration.installing;
+                        if (newWorker) {
+                          newWorker.addEventListener('statechange', function() {
+                            console.log('[PWA] Estado SW:', this.state);
+                            if (this.state === 'activated' && !navigator.serviceWorker.controller) {
+                              console.log('[PWA] SW activado, recargando...');
+                              window.location.reload();
+                            }
+                          });
+                        }
+                      });
+                    },
+                    function(err) {
+                      console.error('[PWA] ❌ SW falló:', err);
+                    }
+                  );
+
+                  // Recargar cuando SW tome control
+                  let refreshing = false;
+                  navigator.serviceWorker.addEventListener('controllerchange', function() {
+                    if (!refreshing) {
+                      refreshing = true;
+                      console.log('[PWA] SW tomó control, recargando...');
+                      window.location.reload();
+                    }
+                  });
                 });
-              });
-            }
-          `}
-        </Script>
+              }
+            `,
+          }}
+        />
+      </head>
+      <body className={inter.className}>
         <OfflineIndicator />
         <PrecachePages />
         {children}
