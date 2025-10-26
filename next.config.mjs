@@ -19,8 +19,10 @@ export default withPWA({
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  sw: 'sw.js',
+  swSrc: 'public/sw-custom.js',
   buildExcludes: [/middleware-manifest\.json$/],
-  publicExcludes: ['!robots.txt', '!sitemap.xml'],
+  publicExcludes: ['!robots.txt', '!sitemap.xml', '!sw-custom.js'],
   cacheOnFrontEndNav: true,
   reloadOnOnline: true,
   runtimeCaching: [
