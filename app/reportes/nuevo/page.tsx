@@ -72,21 +72,31 @@ export default function NuevoReportePage() {
   }, [gps.direccion, gps.comuna, gps.region]);
 
   async function fetchPlantillas() {
-    const { data } = await supabase
-      .from("PlantillaFormulario")
-      .select("*");
+    try {
+      const { data } = await supabase
+        .from("PlantillaFormulario")
+        .select("*");
 
-    if (data) setPlantillas(data);
+      if (data) setPlantillas(data);
+    } catch (error) {
+      console.log('[Offline] No se pudieron cargar plantillas:', error);
+      // No hacer nada, simplemente no carga las plantillas
+    }
   }
 
   async function fetchProyectos() {
-    const { data } = await supabase
-      .from("Proyecto")
-      .select("*")
-      .eq("estado", "ACTIVO")
-      .order("nombre");
+    try {
+      const { data } = await supabase
+        .from("Proyecto")
+        .select("*")
+        .eq("estado", "ACTIVO")
+        .order("nombre");
 
-    if (data) setProyectos(data);
+      if (data) setProyectos(data);
+    } catch (error) {
+      console.log('[Offline] No se pudieron cargar proyectos:', error);
+      // No hacer nada, simplemente no carga los proyectos
+    }
   }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
