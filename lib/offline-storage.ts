@@ -43,7 +43,9 @@ function openDB(): Promise<IDBDatabase> {
 
 // Guardar reporte offline
 export async function guardarReporteOffline(reporte: Omit<ReporteOffline, 'id' | 'createdAt' | 'estado' | 'intentos'>): Promise<string> {
+  console.log('[IndexedDB] Abriendo base de datos...');
   const db = await openDB();
+  console.log('[IndexedDB] ✅ Base de datos abierta');
 
   const reporteCompleto: ReporteOffline = {
     ...reporte,
@@ -53,16 +55,32 @@ export async function guardarReporteOffline(reporte: Omit<ReporteOffline, 'id' |
     intentos: 0,
   };
 
+  console.log('[IndexedDB] Creando transacción...');
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction([STORE_NAME], 'readwrite');
-    const store = transaction.objectStore(STORE_NAME);
-    const request = store.add(reporteCompleto);
+    try {
+      const transaction = db.transaction([STORE_NAME], 'readwrite');
+      const store = transaction.objectStore(STORE_NAME);
+      console.log('[IndexedDB] Agregando reporte a store...');
+      const request = store.add(reporteCompleto);
 
-    request.onsuccess = () => {
-      console.log('[Offline] Reporte guardado:', reporteCompleto.id);
-      resolve(reporteCompleto.id);
-    };
-    request.onerror = () => reject(request.error);
+      request.onsuccess = () => {
+        console.log('[IndexedDB] ✅ Reporte guardado:', reporteCompleto.id);
+        resolve(reporteCompleto.id);
+      };
+
+      request.onerror = () => {
+        console.error('[IndexedDB] ❌ Error en request:', request.error);
+        reject(request.error);
+      };
+
+      transaction.onerror = () => {
+        console.error('[IndexedDB] ❌ Error en transaction:', transaction.error);
+        reject(transaction.error);
+      };
+    } catch (error) {
+      console.error('[IndexedDB] ❌ Error creando transacción:', error);
+      reject(error);
+    }
   });
 }
 
