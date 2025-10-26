@@ -298,6 +298,9 @@ export default function NuevoReportePage() {
             <CardDescription>
               Complete los datos del reporte y capture fotos del trabajo realizado
             </CardDescription>
+            <div className="mt-2 text-xs text-gray-500 font-mono">
+              v1.0.5-debug (Build: 2025-01-26-17:30)
+            </div>
           </CardHeader>
         </Card>
 
