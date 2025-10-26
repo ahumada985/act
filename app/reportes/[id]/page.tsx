@@ -258,9 +258,9 @@ export default function ReporteDetallePage() {
               }
               fileName={`reporte-${reporte.tipoTrabajo}-${new Date(reporte.createdAt).toISOString().split('T')[0]}.pdf`}
             >
-              {({ loading }) => (
-                <Button className="gap-2" disabled={loading}>
-                  {loading ? (
+              {(params: any) => (
+                <Button className="gap-2" disabled={params.loading}>
+                  {params.loading ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Generando PDF...
