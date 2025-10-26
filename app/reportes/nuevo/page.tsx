@@ -184,12 +184,26 @@ export default function NuevoReportePage() {
           audio: audioBase64,
         });
         addDebugLog(`✅ Guardado con ID: ${reporteId}`);
+        addDebugLog('✅ COMPLETADO - Reporte guardado exitosamente');
 
-        alert("✅ Reporte guardado localmente\n\nSe enviará cuando haya conexión.\n\nPuedes ver los reportes pendientes en el menú.");
+        // Limpiar formulario
+        setFormData({
+          tipoTrabajo: "",
+          clienteFinal: "",
+          ordenTrabajo: "",
+          proyectoId: "",
+          proyecto: "",
+          descripcion: "",
+          observaciones: "",
+          direccion: "",
+          comuna: "",
+          region: "",
+        });
+        setFotos([]);
+        setAudios([]);
 
-        addDebugLog('🔀 Navegando a /reportes/pendientes...');
-        router.push("/reportes/pendientes");
-        addDebugLog('✅ COMPLETADO');
+        alert("✅ Reporte guardado localmente\n\nSe enviará cuando haya conexión.\n\nPuedes crear más reportes o ver los pendientes en el menú.");
+
         return;
       }
 
@@ -299,7 +313,7 @@ export default function NuevoReportePage() {
               Complete los datos del reporte y capture fotos del trabajo realizado
             </CardDescription>
             <div className="mt-2 text-xs text-gray-500 font-mono">
-              v1.0.5-debug (Build: 2025-01-26-17:30)
+              v1.0.6-debug (Build: 2025-01-26-17:45)
             </div>
           </CardHeader>
         </Card>
