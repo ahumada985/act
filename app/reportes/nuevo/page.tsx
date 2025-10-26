@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase, uploadFile } from "@/lib/supabase/client";
 import { useGeolocation } from "@/lib/hooks/useGeolocation";
+import { useOnlineStatus } from "@/hooks/useOnlineStatus";
+import { guardarReporteOffline } from "@/lib/offline-storage";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { AudioCapture } from "@/components/forms/AudioCapture";
 import { VoiceInput } from "@/components/forms/VoiceInput";
@@ -14,7 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, MapPin, Save, Loader2, X, Mic } from "lucide-react";
+import { Camera, MapPin, Save, Loader2, X, Mic, WifiOff, Wifi } from "lucide-react";
 
 const TIPOS_TRABAJO = [
   { value: "FIBRA_OPTICA", label: "Fibra Óptica" },
@@ -29,6 +31,7 @@ const TIPOS_TRABAJO = [
 export default function NuevoReportePage() {
   const router = useRouter();
   const gps = useGeolocation(true);
+  const isOnline = useOnlineStatus();
 
   const [showCamera, setShowCamera] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
@@ -109,11 +112,63 @@ export default function NuevoReportePage() {
     setAudios(audios.filter((_, i) => i !== index));
   };
 
+  // Convertir File a base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
 
     try {
+      // ===== MODO OFFLINE: Guardar localmente =====
+      if (!isOnline) {
+        console.log('[Offline] Guardando reporte localmente...');
+
+        // Convertir fotos a base64
+        const fotosBase64: { data: string; nombre: string }[] = [];
+        for (const foto of fotos) {
+          const base64 = await fileToBase64(foto);
+          fotosBase64.push({ data: base64, nombre: foto.name });
+        }
+
+        // Convertir audio a base64
+        let audioBase64: { data: string; nombre: string } | undefined;
+        if (audios.length > 0) {
+          const audio = audios[0];
+          const base64 = await fileToBase64(audio.file);
+          audioBase64 = { data: base64, nombre: audio.file.name };
+        }
+
+        // Guardar en IndexedDB
+        await guardarReporteOffline({
+          tipoTrabajo: formData.tipoTrabajo,
+          supervisorId: "supervisor-001",
+          proyectoId: formData.proyectoId || "",
+          descripcion: formData.descripcion,
+          observaciones: formData.observaciones,
+          coordenadas: gps.latitude && gps.longitude ? {
+            lat: gps.latitude,
+            lng: gps.longitude
+          } : undefined,
+          fotos: fotosBase64,
+          audio: audioBase64,
+        });
+
+        alert("✅ Reporte guardado localmente\n\nSe enviará automáticamente cuando haya conexión.\n\nPuedes ver los reportes pendientes en el menú.");
+        router.push("/reportes/pendientes");
+        return;
+      }
+
+      // ===== MODO ONLINE: Enviar a Supabase =====
+      console.log('[Online] Enviando reporte a Supabase...');
+
       // 1. Subir fotos a Supabase Storage
       const fotosUrls: string[] = [];
       for (const foto of fotos) {
@@ -188,11 +243,11 @@ export default function NuevoReportePage() {
         if (audiosError) throw audiosError;
       }
 
-      alert("Reporte creado exitosamente!");
+      alert("✅ Reporte enviado exitosamente!");
       router.push("/reportes");
     } catch (error: any) {
       console.error("Error:", error);
-      alert("Error al crear reporte: " + error.message);
+      alert("❌ Error al crear reporte: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -511,7 +566,28 @@ export default function NuevoReportePage() {
 
           {/* Botón Submit */}
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-6 space-y-3">
+              {/* Indicador de conexión */}
+              <div className={`p-3 rounded-lg border ${isOnline ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                <div className="flex items-center gap-2">
+                  {isOnline ? (
+                    <>
+                      <Wifi className="h-5 w-5 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">
+                        Online - Se enviará inmediatamente
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <WifiOff className="h-5 w-5 text-yellow-600" />
+                      <span className="text-sm font-medium text-yellow-800">
+                        Offline - Se guardará localmente
+                      </span>
+                    </>
+                  )}
+                </div>
+              </div>
+
               <Button
                 type="submit"
                 disabled={loading || !formData.tipoTrabajo}
@@ -526,7 +602,7 @@ export default function NuevoReportePage() {
                 ) : (
                   <>
                     <Save className="h-5 w-5 mr-2" />
-                    Guardar Reporte
+                    {isOnline ? 'Enviar Reporte' : 'Guardar Offline'}
                   </>
                 )}
               </Button>
