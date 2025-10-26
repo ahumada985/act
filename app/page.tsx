@@ -1,13 +1,51 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileText, Plus, BarChart3, Database, Briefcase, Map } from "lucide-react";
+import { FileText, Plus, BarChart3, Database, Briefcase, Map, Download, Smartphone } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [showInstallButton, setShowInstallButton] = useState(false);
+
+  useEffect(() => {
+    // Detectar si la app es instalable
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setShowInstallButton(true);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+
+    // Verificar si ya está instalada
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      setShowInstallButton(false);
+    }
+
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      // Fallback: mostrar instrucciones manuales
+      alert('Para instalar:\n\n1. Toca el menú (⋮) en la esquina superior derecha\n2. Selecciona "Añadir a pantalla de inicio"\n3. Confirma');
+      return;
+    }
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      setShowInstallButton(false);
+    }
+
+    setDeferredPrompt(null);
+  };
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-50 to-blue-100">
@@ -31,6 +69,20 @@ export default function Home() {
               Sistema de Reportabilidad para Telecomunicaciones
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            {/* Botón de instalación siempre visible en móviles */}
+            <Button
+              onClick={handleInstallClick}
+              className="w-full bg-gradient-to-r from-green-600 to-blue-600 hover:from-green-700 hover:to-blue-700 text-white font-bold py-6 text-lg shadow-lg"
+              size="lg"
+            >
+              <Smartphone className="h-6 w-6 mr-2" />
+              📱 Instalar App en Pantalla de Inicio
+            </Button>
+            <p className="text-center text-sm text-gray-600 mt-3">
+              Acceso rápido desde tu pantalla principal
+            </p>
+          </CardContent>
         </Card>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
