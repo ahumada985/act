@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FileText,
@@ -19,12 +21,37 @@ import {
   Sparkles,
   TrendingUp,
   MessageSquare,
-  File
+  File,
+  Smartphone,
+  Plus
 } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+
+  useEffect(() => {
+    const handler = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) {
+      alert('Para instalar:\n\n1. Toca el menú (⋮) en la esquina superior derecha\n2. Selecciona "Añadir a pantalla de inicio"\n3. Confirma');
+      return;
+    }
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setDeferredPrompt(null);
+    }
+  };
 
   const technologies = [
     { name: "Next.js 14", description: "Framework React de última generación", icon: Zap },
@@ -72,7 +99,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Header Profesional */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <Image
@@ -87,9 +114,28 @@ export default function Home() {
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">
               ACT Reportes
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
               Sistema Profesional de Reportabilidad para Proyectos de Telecomunicaciones en Minería
             </p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button
+                onClick={() => router.push("/reportes/nuevo")}
+                className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 px-8 text-lg"
+                size="lg"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Crear Nuevo Reporte
+              </Button>
+              <Button
+                onClick={handleInstallClick}
+                variant="outline"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-6 px-8 text-lg"
+                size="lg"
+              >
+                <Smartphone className="h-5 w-5 mr-2" />
+                Instalar Aplicación
+              </Button>
+            </div>
           </div>
         </div>
       </header>
