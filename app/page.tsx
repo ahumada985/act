@@ -13,36 +13,32 @@ import {
   Smartphone,
   Image as ImageIcon,
   CheckCircle,
-  Wifi,
   Camera,
   MapPin,
   Clock,
-  Users,
+  Wifi,
+  Database,
+  Zap,
+  Shield,
+  Sparkles,
   TrendingUp,
-  Zap
+  X,
+  MessageSquare,
+  File
 } from "lucide-react";
 import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showInstallButton, setShowInstallButton] = useState(false);
 
   useEffect(() => {
-    // Detectar si la app es instalable
     const handler = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
-      setShowInstallButton(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
-
-    // Verificar si ya está instalada
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallButton(false);
-    }
-
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
@@ -51,268 +47,411 @@ export default function Home() {
       alert('Para instalar:\n\n1. Toca el menú (⋮) en la esquina superior derecha\n2. Selecciona "Añadir a pantalla de inicio"\n3. Confirma');
       return;
     }
-
     deferredPrompt.prompt();
     const { outcome } = await deferredPrompt.userChoice;
-
     if (outcome === 'accepted') {
-      setShowInstallButton(false);
+      setDeferredPrompt(null);
     }
-
-    setDeferredPrompt(null);
   };
 
+  const technologies = [
+    { name: "Next.js 14", description: "Framework React de última generación", icon: Zap },
+    { name: "TypeScript", description: "Código type-safe y robusto", icon: Shield },
+    { name: "Supabase", description: "Base de datos PostgreSQL en tiempo real", icon: Database },
+    { name: "PWA", description: "Instalable y funciona offline", icon: Smartphone },
+    { name: "Tailwind CSS", description: "Diseño responsive y moderno", icon: Sparkles },
+    { name: "IndexedDB", description: "Almacenamiento local para offline", icon: Database },
+  ];
+
   const features = [
-    { icon: Camera, title: "Capturas de Fotos", description: "Alta calidad con geolocalización" },
-    { icon: MapPin, title: "GPS Integrado", description: "Ubicación automática de reportes" },
-    { icon: Wifi, title: "Modo Offline", description: "Funciona sin conexión" },
-    { icon: Clock, title: "Histórico Completo", description: "Acceso a todos los reportes" },
+    {
+      icon: Camera,
+      title: "Captura Multimedia",
+      description: "Fotos de alta calidad con compresión automática y marcas de agua opcionales"
+    },
+    {
+      icon: MapPin,
+      title: "Geolocalización GPS",
+      description: "Coordenadas precisas con geocodificación inversa automática"
+    },
+    {
+      icon: Wifi,
+      title: "Modo Offline Completo",
+      description: "Guarda reportes localmente y sincroniza cuando vuelva la conexión"
+    },
+    {
+      icon: FileText,
+      title: "Reportes Estandarizados",
+      description: "Formularios personalizables con validación de datos en tiempo real"
+    },
+    {
+      icon: BarChart3,
+      title: "Analytics & Dashboard",
+      description: "Estadísticas en tiempo real con gráficos interactivos"
+    },
+    {
+      icon: Map,
+      title: "Visualización Geográfica",
+      description: "Mapa interactivo con todos los reportes geolocalizados"
+    },
   ];
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-      {/* Header con Gradiente Animado */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 animate-pulse"></div>
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-24">
-          {/* Logo y Título Principal */}
+    <div className="min-h-screen bg-white">
+      {/* Header Profesional */}
+      <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
           <div className="text-center">
-            <div className="flex justify-center mb-6 animate-fade-in">
-              <div className="relative">
-                <div className="absolute -inset-4 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full blur-xl opacity-50 animate-pulse"></div>
-                <Image
-                  src="/logo.png"
-                  alt="ACT Logo"
-                  width={240}
-                  height={96}
-                  priority
-                  className="relative object-contain"
-                />
-              </div>
+            <div className="flex justify-center mb-6">
+              <Image
+                src="/logo.png"
+                alt="ACT Logo"
+                width={200}
+                height={80}
+                priority
+                className="object-contain"
+              />
             </div>
-
-            <h1 className="text-5xl sm:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 mb-4 animate-fade-in">
+            <h1 className="text-4xl sm:text-6xl font-bold mb-4">
               ACT Reportes
             </h1>
-
-            <p className="text-xl sm:text-2xl text-blue-200 mb-8 animate-fade-in font-light">
-              Sistema de Reportabilidad para Telecomunicaciones Mineras
+            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+              Sistema Profesional de Reportabilidad para Proyectos de Telecomunicaciones en Minería
             </p>
-
-            {/* Botón de Instalación Destacado */}
-            <Button
-              onClick={handleInstallClick}
-              className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold py-6 px-8 text-lg shadow-2xl hover:shadow-green-500/50 transition-all duration-300 transform hover:scale-105"
-              size="lg"
-            >
-              <Smartphone className="h-6 w-6 mr-2" />
-              Instalar App
-            </Button>
-            <p className="text-blue-300 mt-3 text-sm">
-              ⚡ Acceso instantáneo desde tu pantalla principal
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Sección de Características */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
-          {features.map((feature, index) => (
-            <Card
-              key={index}
-              className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105"
-            >
-              <CardContent className="pt-6 text-center">
-                <feature.icon className="h-8 w-8 mx-auto mb-3 text-blue-400" />
-                <p className="font-semibold text-white text-sm mb-1">{feature.title}</p>
-                <p className="text-xs text-blue-200">{feature.description}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Acciones Principales - Diseño Mejorado */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
-          {/* Nuevo Reporte - Destacado */}
-          <Card
-            className="bg-gradient-to-br from-blue-600 to-blue-800 border-blue-400/50 shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-            onClick={() => router.push("/reportes/nuevo")}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-white text-2xl">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <Plus className="h-8 w-8" />
-                </div>
-                Nuevo Reporte
-              </CardTitle>
-              <CardDescription className="text-blue-100 text-base">
-                Crear reporte de terreno con fotos, audio y GPS
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button
-                className="w-full bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 text-lg shadow-lg"
-                onClick={(e) => { e.stopPropagation(); router.push("/reportes/nuevo"); }}
+                onClick={() => router.push("/reportes/nuevo")}
+                className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 px-8 text-lg"
+                size="lg"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Crear Ahora
+                Crear Nuevo Reporte
               </Button>
-            </CardContent>
-          </Card>
-
-          {/* Ver Reportes */}
-          <Card
-            className="bg-gradient-to-br from-purple-600 to-purple-800 border-purple-400/50 shadow-2xl hover:shadow-purple-500/50 transition-all duration-300 transform hover:scale-105 cursor-pointer"
-            onClick={() => router.push("/reportes")}
-          >
-            <CardHeader>
-              <CardTitle className="flex items-center gap-3 text-white text-2xl">
-                <div className="p-3 bg-white/20 rounded-lg">
-                  <FileText className="h-8 w-8" />
-                </div>
-                Ver Reportes
-              </CardTitle>
-              <CardDescription className="text-purple-100 text-base">
-                Historial completo de todos los reportes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
               <Button
-                className="w-full bg-white text-purple-600 hover:bg-purple-50 font-bold py-6 text-lg shadow-lg"
-                onClick={(e) => { e.stopPropagation(); router.push("/reportes"); }}
+                onClick={handleInstallClick}
+                variant="outline"
+                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-6 px-8 text-lg"
+                size="lg"
               >
-                <FileText className="h-5 w-5 mr-2" />
-                Ver Lista
+                <Smartphone className="h-5 w-5 mr-2" />
+                Instalar Aplicación
               </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sección de Herramientas */}
-        <h2 className="text-3xl font-bold text-white mb-6 text-center">
-          Herramientas Disponibles
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Dashboard */}
-          <Card
-            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-            onClick={() => router.push("/dashboard")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-gradient-to-br from-orange-500 to-red-500 rounded-2xl group-hover:scale-110 transition-transform">
-                  <BarChart3 className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <CardTitle className="text-white text-center text-lg">Dashboard</CardTitle>
-              <CardDescription className="text-blue-200 text-center text-sm">
-                Estadísticas y gráficos
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Proyectos */}
-          <Card
-            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-            onClick={() => router.push("/proyectos")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Briefcase className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <CardTitle className="text-white text-center text-lg">Proyectos</CardTitle>
-              <CardDescription className="text-blue-200 text-center text-sm">
-                Gestión de proyectos
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Mapa */}
-          <Card
-            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-            onClick={() => router.push("/mapa")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-2xl group-hover:scale-110 transition-transform">
-                  <Map className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <CardTitle className="text-white text-center text-lg">Mapa</CardTitle>
-              <CardDescription className="text-blue-200 text-center text-sm">
-                Visualización geográfica
-              </CardDescription>
-            </CardHeader>
-          </Card>
-
-          {/* Galería */}
-          <Card
-            className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 transition-all duration-300 transform hover:scale-105 cursor-pointer group"
-            onClick={() => router.push("/galeria")}
-          >
-            <CardHeader>
-              <div className="flex items-center justify-center mb-4">
-                <div className="p-4 bg-gradient-to-br from-pink-500 to-rose-500 rounded-2xl group-hover:scale-110 transition-transform">
-                  <ImageIcon className="h-8 w-8 text-white" />
-                </div>
-              </div>
-              <CardTitle className="text-white text-center text-lg">Galería</CardTitle>
-              <CardDescription className="text-blue-200 text-center text-sm">
-                Todas las fotos
-              </CardDescription>
-            </CardHeader>
-          </Card>
-        </div>
-
-        {/* Estado del Sistema */}
-        <Card className="mt-12 bg-gradient-to-r from-green-500/20 to-emerald-500/20 backdrop-blur-md border-green-400/30">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-300 text-xl">
-              <CheckCircle className="h-6 w-6" />
-              Sistema Operativo
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-center">
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">✅</div>
-                <p className="text-sm font-semibold text-white">Base de Datos</p>
-                <p className="text-xs text-green-300">Supabase</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">✅</div>
-                <p className="text-sm font-semibold text-white">Storage</p>
-                <p className="text-xs text-green-300">Archivos</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">✅</div>
-                <p className="text-sm font-semibold text-white">PWA</p>
-                <p className="text-xs text-green-300">Instalable</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">✅</div>
-                <p className="text-sm font-semibold text-white">Offline</p>
-                <p className="text-xs text-green-300">Disponible</p>
-              </div>
-              <div className="flex flex-col items-center">
-                <div className="text-3xl mb-2">⚡</div>
-                <p className="text-sm font-semibold text-white">Performance</p>
-                <p className="text-xs text-green-300">Optimizado</p>
-              </div>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Footer */}
-        <div className="mt-12 text-center text-blue-300 text-sm">
-          <p>© 2025 ACT Reportes - Sistema de Reportabilidad para Minería</p>
-          <p className="mt-2">Optimizado para trabajo en terreno sin cobertura</p>
+          </div>
         </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Tecnologías */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+            Tecnologías de Vanguardia
+          </h2>
+          <p className="text-gray-600 text-center mb-8">
+            Stack tecnológico moderno y escalable
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {technologies.map((tech, index) => (
+              <Card key={index} className="text-center hover:shadow-lg transition-shadow">
+                <CardContent className="pt-6">
+                  <tech.icon className="h-10 w-10 mx-auto mb-3 text-blue-600" />
+                  <p className="font-bold text-sm mb-1">{tech.name}</p>
+                  <p className="text-xs text-gray-500">{tech.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Características Principales */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+            Características Principales
+          </h2>
+          <p className="text-gray-600 text-center mb-8">
+            Funcionalidades diseñadas específicamente para trabajo en terreno
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <Card key={index} className="hover:shadow-xl transition-all border-l-4 border-blue-600">
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-blue-100 rounded-lg">
+                      <feature.icon className="h-6 w-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg mb-2">{feature.title}</CardTitle>
+                      <CardDescription className="text-sm">{feature.description}</CardDescription>
+                    </div>
+                  </div>
+                </CardHeader>
+              </Card>
+            ))}
+          </div>
+        </section>
+
+        {/* Ventajas Competitivas */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+            Ventajas Competitivas
+          </h2>
+          <p className="text-gray-600 text-center mb-8">
+            Por qué ACT Reportes supera a las alternativas tradicionales
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* vs WhatsApp */}
+            <Card className="border-2 border-red-200 hover:shadow-xl transition-all">
+              <CardHeader className="bg-red-50">
+                <div className="flex items-center gap-2 mb-2">
+                  <MessageSquare className="h-6 w-6 text-red-600" />
+                  <CardTitle className="text-xl">vs WhatsApp</CardTitle>
+                </div>
+                <CardDescription>Solución informal vs Profesional</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">No se pierde información en chats</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Trazabilidad completa y auditable</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Búsqueda instantánea por filtros</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Reportes estandarizados y estructurados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Generación automática de PDFs</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Dashboard con métricas en tiempo real</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* vs Power Apps */}
+            <Card className="border-2 border-purple-200 hover:shadow-xl transition-all">
+              <CardHeader className="bg-purple-50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Zap className="h-6 w-6 text-purple-600" />
+                  <CardTitle className="text-xl">vs Power Apps</CardTitle>
+                </div>
+                <CardDescription>Low-code vs Código Nativo</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">UI/UX 100% personalizada a medida</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Sin límites de customización</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Performance superior (3-5x más rápido)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">No depende de licencias Microsoft</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Sin límites de conectores o APIs</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Escalabilidad ilimitada</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+
+            {/* vs Excel/Sheets */}
+            <Card className="border-2 border-green-200 hover:shadow-xl transition-all">
+              <CardHeader className="bg-green-50">
+                <div className="flex items-center gap-2 mb-2">
+                  <File className="h-6 w-6 text-green-600" />
+                  <CardTitle className="text-xl">vs Excel/Sheets</CardTitle>
+                </div>
+                <CardDescription>Hojas de cálculo vs App Dedicada</CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <ul className="space-y-3">
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Captura de fotos y audio integrada</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">GPS automático con geocodificación</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Validación de datos en tiempo real</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Funciona 100% sin conexión</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">No hay archivos duplicados o versiones</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <span className="text-sm">Control de permisos granular</span>
+                  </li>
+                </ul>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Módulos Disponibles */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
+            Módulos del Sistema
+          </h2>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
+              onClick={() => router.push("/reportes")}
+            >
+              <CardContent className="pt-6 text-center">
+                <FileText className="h-12 w-12 mx-auto mb-3 text-blue-600" />
+                <p className="font-bold">Reportes</p>
+                <p className="text-xs text-gray-500 mt-1">Gestión completa</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-orange-600"
+              onClick={() => router.push("/dashboard")}
+            >
+              <CardContent className="pt-6 text-center">
+                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-orange-600" />
+                <p className="font-bold">Dashboard</p>
+                <p className="text-xs text-gray-500 mt-1">Analíticas</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-purple-600"
+              onClick={() => router.push("/proyectos")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Briefcase className="h-12 w-12 mx-auto mb-3 text-purple-600" />
+                <p className="font-bold">Proyectos</p>
+                <p className="text-xs text-gray-500 mt-1">Organización</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-teal-600"
+              onClick={() => router.push("/mapa")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Map className="h-12 w-12 mx-auto mb-3 text-teal-600" />
+                <p className="font-bold">Mapa</p>
+                <p className="text-xs text-gray-500 mt-1">Geolocalización</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-pink-600"
+              onClick={() => router.push("/galeria")}
+            >
+              <CardContent className="pt-6 text-center">
+                <ImageIcon className="h-12 w-12 mx-auto mb-3 text-pink-600" />
+                <p className="font-bold">Galería</p>
+                <p className="text-xs text-gray-500 mt-1">Multimedia</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-indigo-600"
+              onClick={() => router.push("/proyectos/timeline")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Clock className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
+                <p className="font-bold">Timeline</p>
+                <p className="text-xs text-gray-500 mt-1">Cronología</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-green-600"
+              onClick={() => router.push("/proyectos/fases")}
+            >
+              <CardContent className="pt-6 text-center">
+                <TrendingUp className="h-12 w-12 mx-auto mb-3 text-green-600" />
+                <p className="font-bold">Fases</p>
+                <p className="text-xs text-gray-500 mt-1">Progreso</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
+              onClick={() => router.push("/proyectos/avance")}
+            >
+              <CardContent className="pt-6 text-center">
+                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-blue-600" />
+                <p className="font-bold">Avance</p>
+                <p className="text-xs text-gray-500 mt-1">Métricas</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* CTA Final */}
+        <section className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-12 text-center text-white">
+          <h2 className="text-3xl font-bold mb-4">
+            ¿Listo para mejorar tu reportabilidad?
+          </h2>
+          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
+            Moderniza tu proceso de reportes con tecnología de punta
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Button
+              onClick={() => router.push("/reportes/nuevo")}
+              className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 px-8 text-lg"
+              size="lg"
+            >
+              Crear Primer Reporte
+            </Button>
+            <Button
+              onClick={() => router.push("/demo")}
+              variant="outline"
+              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-6 px-8 text-lg"
+              size="lg"
+            >
+              Ver Demo
+            </Button>
+          </div>
+        </section>
       </div>
-    </main>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 text-gray-300 py-8 mt-16">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <p className="mb-2">© 2025 ACT Reportes - Sistema Profesional de Reportabilidad</p>
+          <p className="text-sm text-gray-500">
+            Diseñado específicamente para proyectos de telecomunicaciones en minería
+          </p>
+        </div>
+      </footer>
+    </div>
   );
 }
