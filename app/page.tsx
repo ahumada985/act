@@ -1,16 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   FileText,
-  Plus,
   BarChart3,
   Briefcase,
   Map,
-  Smartphone,
   Image as ImageIcon,
   CheckCircle,
   Camera,
@@ -22,7 +18,6 @@ import {
   Shield,
   Sparkles,
   TrendingUp,
-  X,
   MessageSquare,
   File
 } from "lucide-react";
@@ -30,29 +25,6 @@ import Image from "next/image";
 
 export default function Home() {
   const router = useRouter();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-
-  useEffect(() => {
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
-
-  const handleInstallClick = async () => {
-    if (!deferredPrompt) {
-      alert('Para instalar:\n\n1. Toca el menú (⋮) en la esquina superior derecha\n2. Selecciona "Añadir a pantalla de inicio"\n3. Confirma');
-      return;
-    }
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
-    if (outcome === 'accepted') {
-      setDeferredPrompt(null);
-    }
-  };
 
   const technologies = [
     { name: "Next.js 14", description: "Framework React de última generación", icon: Zap },
@@ -100,7 +72,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Header Profesional */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-16">
           <div className="text-center">
             <div className="flex justify-center mb-6">
               <Image
@@ -115,33 +87,113 @@ export default function Home() {
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">
               ACT Reportes
             </h1>
-            <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
+            <p className="text-xl sm:text-2xl text-blue-100 max-w-3xl mx-auto">
               Sistema Profesional de Reportabilidad para Proyectos de Telecomunicaciones en Minería
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button
-                onClick={() => router.push("/reportes/nuevo")}
-                className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 px-8 text-lg"
-                size="lg"
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Crear Nuevo Reporte
-              </Button>
-              <Button
-                onClick={handleInstallClick}
-                variant="outline"
-                className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-6 px-8 text-lg"
-                size="lg"
-              >
-                <Smartphone className="h-5 w-5 mr-2" />
-                Instalar Aplicación
-              </Button>
-            </div>
           </div>
         </div>
       </header>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Módulos del Sistema - PRIMERO */}
+        <section className="mb-16">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
+            Módulos del Sistema
+          </h2>
+          <p className="text-gray-600 text-center mb-8">
+            Accede a todas las funcionalidades de la plataforma
+          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
+              onClick={() => router.push("/reportes")}
+            >
+              <CardContent className="pt-6 text-center">
+                <FileText className="h-12 w-12 mx-auto mb-3 text-blue-600" />
+                <p className="font-bold">Reportes</p>
+                <p className="text-xs text-gray-500 mt-1">Gestión completa</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-orange-600"
+              onClick={() => router.push("/dashboard")}
+            >
+              <CardContent className="pt-6 text-center">
+                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-orange-600" />
+                <p className="font-bold">Dashboard</p>
+                <p className="text-xs text-gray-500 mt-1">Analíticas</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-purple-600"
+              onClick={() => router.push("/proyectos")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Briefcase className="h-12 w-12 mx-auto mb-3 text-purple-600" />
+                <p className="font-bold">Proyectos</p>
+                <p className="text-xs text-gray-500 mt-1">Organización</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-teal-600"
+              onClick={() => router.push("/mapa")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Map className="h-12 w-12 mx-auto mb-3 text-teal-600" />
+                <p className="font-bold">Mapa</p>
+                <p className="text-xs text-gray-500 mt-1">Geolocalización</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-pink-600"
+              onClick={() => router.push("/galeria")}
+            >
+              <CardContent className="pt-6 text-center">
+                <ImageIcon className="h-12 w-12 mx-auto mb-3 text-pink-600" />
+                <p className="font-bold">Galería</p>
+                <p className="text-xs text-gray-500 mt-1">Multimedia</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-indigo-600"
+              onClick={() => router.push("/proyectos/timeline")}
+            >
+              <CardContent className="pt-6 text-center">
+                <Clock className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
+                <p className="font-bold">Timeline</p>
+                <p className="text-xs text-gray-500 mt-1">Cronología</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-green-600"
+              onClick={() => router.push("/proyectos/fases")}
+            >
+              <CardContent className="pt-6 text-center">
+                <TrendingUp className="h-12 w-12 mx-auto mb-3 text-green-600" />
+                <p className="font-bold">Fases</p>
+                <p className="text-xs text-gray-500 mt-1">Progreso</p>
+              </CardContent>
+            </Card>
+
+            <Card
+              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
+              onClick={() => router.push("/proyectos/avance")}
+            >
+              <CardContent className="pt-6 text-center">
+                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-blue-600" />
+                <p className="font-bold">Avance</p>
+                <p className="text-xs text-gray-500 mt-1">Métricas</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
         {/* Tecnologías */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold text-gray-900 mb-2 text-center">
@@ -319,128 +371,6 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Módulos Disponibles */}
-        <section className="mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 mb-8 text-center">
-            Módulos del Sistema
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
-              onClick={() => router.push("/reportes")}
-            >
-              <CardContent className="pt-6 text-center">
-                <FileText className="h-12 w-12 mx-auto mb-3 text-blue-600" />
-                <p className="font-bold">Reportes</p>
-                <p className="text-xs text-gray-500 mt-1">Gestión completa</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-orange-600"
-              onClick={() => router.push("/dashboard")}
-            >
-              <CardContent className="pt-6 text-center">
-                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-orange-600" />
-                <p className="font-bold">Dashboard</p>
-                <p className="text-xs text-gray-500 mt-1">Analíticas</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-purple-600"
-              onClick={() => router.push("/proyectos")}
-            >
-              <CardContent className="pt-6 text-center">
-                <Briefcase className="h-12 w-12 mx-auto mb-3 text-purple-600" />
-                <p className="font-bold">Proyectos</p>
-                <p className="text-xs text-gray-500 mt-1">Organización</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-teal-600"
-              onClick={() => router.push("/mapa")}
-            >
-              <CardContent className="pt-6 text-center">
-                <Map className="h-12 w-12 mx-auto mb-3 text-teal-600" />
-                <p className="font-bold">Mapa</p>
-                <p className="text-xs text-gray-500 mt-1">Geolocalización</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-pink-600"
-              onClick={() => router.push("/galeria")}
-            >
-              <CardContent className="pt-6 text-center">
-                <ImageIcon className="h-12 w-12 mx-auto mb-3 text-pink-600" />
-                <p className="font-bold">Galería</p>
-                <p className="text-xs text-gray-500 mt-1">Multimedia</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-indigo-600"
-              onClick={() => router.push("/proyectos/timeline")}
-            >
-              <CardContent className="pt-6 text-center">
-                <Clock className="h-12 w-12 mx-auto mb-3 text-indigo-600" />
-                <p className="font-bold">Timeline</p>
-                <p className="text-xs text-gray-500 mt-1">Cronología</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-green-600"
-              onClick={() => router.push("/proyectos/fases")}
-            >
-              <CardContent className="pt-6 text-center">
-                <TrendingUp className="h-12 w-12 mx-auto mb-3 text-green-600" />
-                <p className="font-bold">Fases</p>
-                <p className="text-xs text-gray-500 mt-1">Progreso</p>
-              </CardContent>
-            </Card>
-
-            <Card
-              className="cursor-pointer hover:shadow-lg transition-all hover:border-blue-600"
-              onClick={() => router.push("/proyectos/avance")}
-            >
-              <CardContent className="pt-6 text-center">
-                <BarChart3 className="h-12 w-12 mx-auto mb-3 text-blue-600" />
-                <p className="font-bold">Avance</p>
-                <p className="text-xs text-gray-500 mt-1">Métricas</p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* CTA Final */}
-        <section className="bg-gradient-to-r from-blue-600 to-blue-800 rounded-2xl p-12 text-center text-white">
-          <h2 className="text-3xl font-bold mb-4">
-            ¿Listo para mejorar tu reportabilidad?
-          </h2>
-          <p className="text-xl text-blue-100 mb-8 max-w-2xl mx-auto">
-            Moderniza tu proceso de reportes con tecnología de punta
-          </p>
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              onClick={() => router.push("/reportes/nuevo")}
-              className="bg-white text-blue-600 hover:bg-blue-50 font-bold py-6 px-8 text-lg"
-              size="lg"
-            >
-              Crear Primer Reporte
-            </Button>
-            <Button
-              onClick={() => router.push("/demo")}
-              variant="outline"
-              className="border-2 border-white text-white hover:bg-white hover:text-blue-600 font-bold py-6 px-8 text-lg"
-              size="lg"
-            >
-              Ver Demo
-            </Button>
-          </div>
-        </section>
       </div>
 
       {/* Footer */}
