@@ -113,10 +113,17 @@ export default function NuevoReportePage() {
   };
 
   const handleCapture = (file: File) => {
+    console.log('📸 Foto capturada:', file.name);
     setFotos([...fotos, file]);
     // Crear URL temporal para análisis IA
     const url = URL.createObjectURL(file);
+    console.log('🔗 URL temporal creada:', url);
     setFotosUrls([...fotosUrls, url]);
+    console.log('📊 Estado actual:', {
+      totalFotos: fotos.length + 1,
+      totalUrls: fotosUrls.length + 1,
+      tipoTrabajo: formData.tipoTrabajo
+    });
   };
 
   const handleAudioCapture = (file: File, duration: number) => {
@@ -587,6 +594,15 @@ export default function NuevoReportePage() {
           </Card>
 
           {/* Análisis IA de la última foto */}
+          {(() => {
+            console.log('🔍 Verificando condiciones IA:', {
+              fotosLength: fotos.length,
+              tipoTrabajo: formData.tipoTrabajo,
+              fotosUrlsLength: fotosUrls.length,
+              mostrarIA: fotos.length > 0 && formData.tipoTrabajo && fotosUrls.length > 0
+            });
+            return null;
+          })()}
           {fotos.length > 0 && formData.tipoTrabajo && fotosUrls.length > 0 && (
             <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
               <CardHeader>
