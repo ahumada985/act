@@ -9,6 +9,7 @@ import { guardarReporteOffline } from "@/lib/offline-storage";
 import { CameraCapture } from "@/components/forms/CameraCapture";
 import { AudioCapture } from "@/components/forms/AudioCapture";
 import { VoiceInput } from "@/components/forms/VoiceInput";
+import { AnalisisIAPanel } from "@/components/ia/AnalisisIAPanel";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,8 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, MapPin, Save, Loader2, X, Mic, WifiOff, Wifi } from "lucide-react";
+import type { TipoTrabajo } from "@/lib/ia/prompts";
+import type { AnalisisIA } from "@/app/api/vision/analyze/route";
 
 const TIPOS_TRABAJO = [
   { value: "FIBRA_OPTICA", label: "Fibra Óptica" },
@@ -36,11 +39,13 @@ export default function NuevoReportePage() {
   const [showCamera, setShowCamera] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
   const [fotos, setFotos] = useState<File[]>([]);
+  const [fotosUrls, setFotosUrls] = useState<string[]>([]); // URLs temporales para análisis IA
   const [audios, setAudios] = useState<{ file: File; duration: number }[]>([]);
   const [loading, setLoading] = useState(false);
   const [plantillas, setPlantillas] = useState<any[]>([]);
   const [proyectos, setProyectos] = useState<any[]>([]);
   const [debugLogs, setDebugLogs] = useState<string[]>([]);
+  const [analisisIA, setAnalisisIA] = useState<AnalisisIA | null>(null);
 
   const [formData, setFormData] = useState({
     tipoTrabajo: "",
@@ -109,6 +114,9 @@ export default function NuevoReportePage() {
 
   const handleCapture = (file: File) => {
     setFotos([...fotos, file]);
+    // Crear URL temporal para análisis IA
+    const url = URL.createObjectURL(file);
+    setFotosUrls([...fotosUrls, url]);
   };
 
   const handleAudioCapture = (file: File, duration: number) => {
@@ -116,7 +124,16 @@ export default function NuevoReportePage() {
   };
 
   const removePhoto = (index: number) => {
+    // Liberar URL temporal
+    if (fotosUrls[index]) {
+      URL.revokeObjectURL(fotosUrls[index]);
+    }
     setFotos(fotos.filter((_, i) => i !== index));
+    setFotosUrls(fotosUrls.filter((_, i) => i !== index));
+    // Limpiar análisis IA si es la última foto
+    if (index === fotos.length - 1) {
+      setAnalisisIA(null);
+    }
   };
 
   const removeAudio = (index: number) => {
@@ -248,6 +265,11 @@ export default function NuevoReportePage() {
           longitud: gps.longitude,
           supervisorId: "supervisor-001", // Por ahora hardcodeado
           status: "ENVIADO",
+          // Campos de IA
+          analisis_ia: analisisIA || null,
+          conformidad_ia: analisisIA?.cumplimiento_general || null,
+          puntuacion_ia: analisisIA?.puntuacion || null,
+          validado_por_humano: false,
         })
         .select()
         .single();
@@ -563,6 +585,37 @@ export default function NuevoReportePage() {
               )}
             </CardContent>
           </Card>
+
+          {/* Análisis IA de la última foto */}
+          {fotos.length > 0 && formData.tipoTrabajo && fotosUrls.length > 0 && (
+            <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
+              <CardHeader>
+                <CardTitle className="text-xl text-purple-700">
+                  🤖 Análisis Inteligente con IA
+                </CardTitle>
+                <CardDescription>
+                  Verifica automáticamente el cumplimiento de estándares de instalación
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <AnalisisIAPanel
+                  fotoUrl={fotosUrls[fotosUrls.length - 1]}
+                  tipoEquipo={formData.tipoTrabajo as TipoTrabajo}
+                  onAnalisisCompleto={(analisis) => {
+                    setAnalisisIA(analisis);
+                    addDebugLog(`✅ Análisis IA completado: ${analisis.cumplimiento_general} (${analisis.puntuacion}/100)`);
+                  }}
+                  disabled={!isOnline}
+                />
+                {!isOnline && (
+                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
+                    <WifiOff className="inline h-4 w-4 mr-2" />
+                    El análisis IA requiere conexión a internet. Podrás analizar cuando vuelva la conexión.
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Audios de Voz */}
           <Card>

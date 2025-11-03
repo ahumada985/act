@@ -74,6 +74,12 @@ model Reporte {
   // Campos dinámicos específicos por tipo de trabajo (JSON)
   camposDinamicos   Json?
 
+  // IA - Análisis automático
+  analisisIA        Json?              @map("analisis_ia")
+  conformidadIA     String?            @map("conformidad_ia") // CONFORME | NO_CONFORME | PARCIALMENTE_CONFORME
+  puntuacionIA      Int?               @map("puntuacion_ia")  // 0-100
+  validadoPorHumano Boolean            @default(false) @map("validado_por_humano")
+
   // Multimedia
   fotos             Foto[]
   audios            Audio[]
@@ -94,10 +100,15 @@ model Reporte {
 }
 
 model Foto {
-  id          String   @id @default(uuid())
-  url         String
-  descripcion String?
-  orden       Int      @default(0)
+  id                String   @id @default(uuid())
+  url               String
+  descripcion       String?
+  orden             Int      @default(0)
+
+  // IA - Análisis de la foto
+  analisisIA        Json?              @map("analisis_ia")
+  objetosDetectados String[]           @map("objetos_detectados") @default([])
+  alertasIA         String[]           @map("alertas_ia") @default([])
 
   reporteId   String
   reporte     Reporte  @relation(fields: [reporteId], references: [id], onDelete: Cascade)
