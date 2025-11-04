@@ -34,13 +34,29 @@ export function AnalisisIAPanel({
     setError(null)
 
     try {
+      // Si es una URL blob, convertir a base64
+      let imageData = fotoUrl
+
+      if (fotoUrl.startsWith('blob:')) {
+        console.log('🔄 Convirtiendo blob a base64...')
+        const response = await fetch(fotoUrl)
+        const blob = await response.blob()
+        imageData = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader()
+          reader.onloadend = () => resolve(reader.result as string)
+          reader.onerror = reject
+          reader.readAsDataURL(blob)
+        })
+        console.log('✅ Conversión completada')
+      }
+
       console.log('📤 Enviando request a API...')
 
       const response = await fetch('/api/vision/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          imageUrl: fotoUrl,
+          imageUrl: imageData,
           tipoEquipo: tipoEquipo
         })
       })
