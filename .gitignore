@@ -40,3 +40,10 @@ next-env.d.ts
 /public/sw.js.map
 /public/workbox-*.js.map
 /public/worker-*.js.map
+
+# Claude Code configuration
+.claude/
+
+# Personal documents (not project-related)
+ESTRATEGIA_REUNION_ACT.md
+PLAN_ESTUDIO_VMWARE_VCP.md
