@@ -26,10 +26,16 @@ export function AnalisisIAPanel({
   const [error, setError] = useState<string | null>(null)
 
   const analizarFoto = async () => {
+    console.log('🤖 Iniciando análisis IA...')
+    console.log('📸 Foto URL:', fotoUrl)
+    console.log('🔧 Tipo equipo:', tipoEquipo)
+
     setAnalizando(true)
     setError(null)
 
     try {
+      console.log('📤 Enviando request a API...')
+
       const response = await fetch('/api/vision/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -39,13 +45,18 @@ export function AnalisisIAPanel({
         })
       })
 
+      console.log('📥 Response status:', response.status)
+
       const data = await response.json()
+      console.log('📦 Response data:', data)
 
       if (!data.success) {
+        console.error('❌ Error en response:', data.error)
         throw new Error(data.error || 'Error al analizar la imagen')
       }
 
       const analisisData: AnalisisIA = data.analisis
+      console.log('✅ Análisis completado:', analisisData)
 
       setAnalisis(analisisData)
 
@@ -54,10 +65,11 @@ export function AnalisisIAPanel({
         onAnalisisCompleto(analisisData)
       }
     } catch (error: any) {
-      console.error('Error al analizar:', error)
+      console.error('❌ Error al analizar:', error)
       setError(error.message || 'Error desconocido al analizar la imagen')
     } finally {
       setAnalizando(false)
+      console.log('🏁 Análisis terminado')
     }
   }
 
