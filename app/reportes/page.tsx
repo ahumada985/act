@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select } from "@/components/ui/select";
+// Removed Select import - using native HTML select
 import { Label } from "@/components/ui/label";
 import { formatDateTime } from "@/lib/utils";
 import { Plus, MapPin, Calendar, User, FileText, Filter, X, FileSpreadsheet, Save, Star, Trash2, ChevronDown, ChevronUp } from "lucide-react";
@@ -370,10 +370,11 @@ export default function ReportesPage() {
 
               <div>
                 <Label htmlFor="tipoTrabajo">Tipo de Trabajo</Label>
-                <Select
+                <select
                   id="tipoTrabajo"
                   value={filtros.tipoTrabajo}
                   onChange={(e) => setFiltros({ ...filtros, tipoTrabajo: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Todos</option>
                   <option value="FIBRA_OPTICA">Fibra Óptica</option>
@@ -383,22 +384,23 @@ export default function ReportesPage() {
                   <option value="INSTALACION_RED">Instalación Red</option>
                   <option value="MANTENIMIENTO">Mantenimiento</option>
                   <option value="OTRO">Otro</option>
-                </Select>
+                </select>
               </div>
 
               <div>
                 <Label htmlFor="status">Estado</Label>
-                <Select
+                <select
                   id="status"
                   value={filtros.status}
                   onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Todos</option>
                   <option value="BORRADOR">Borrador</option>
                   <option value="ENVIADO">Enviado</option>
                   <option value="APROBADO">Aprobado</option>
                   <option value="RECHAZADO">Rechazado</option>
-                </Select>
+                </select>
               </div>
 
               <div className="flex items-end">
