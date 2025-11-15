@@ -12,6 +12,19 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: false,
   },
+  // Optimizaciones de performance
+  swcMinify: true,
+  modularizeImports: {
+    'lucide-react': {
+      transform: 'lucide-react/dist/esm/icons/{{kebabCase member}}',
+    },
+    'recharts': {
+      transform: 'recharts/es6/{{member}}',
+    },
+  },
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'recharts', 'leaflet'],
+  },
 };
 
 export default withPWA({
