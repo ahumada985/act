@@ -7,4 +7,4 @@ export * from './useFotos';
 export * from './usePlantillas';
 export * from './useUsers';
 export * from './useProyectos';
-export * from './useChat';
+// export * from './useChat'; // Disabled - chat removed
