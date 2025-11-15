@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
+// Removed Select import - using native HTML select
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, MapPin, Save, Loader2, X, Mic, ArrowLeft } from "lucide-react";
 
@@ -293,12 +293,13 @@ export default function EditarReportePage() {
                 <Label htmlFor="tipoTrabajo">
                   Tipo de Trabajo <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <select
                   id="tipoTrabajo"
                   name="tipoTrabajo"
                   value={formData.tipoTrabajo}
                   onChange={handleInputChange}
                   required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Seleccione...</option>
                   {TIPOS_TRABAJO.map((tipo) => (
@@ -306,7 +307,7 @@ export default function EditarReportePage() {
                       {tipo.label}
                     </option>
                   ))}
-                </Select>
+                </select>
               </div>
 
               <div>
@@ -333,7 +334,7 @@ export default function EditarReportePage() {
 
               <div>
                 <Label htmlFor="proyectoId">Proyecto</Label>
-                <Select
+                <select
                   id="proyectoId"
                   name="proyectoId"
                   value={formData.proyectoId}
@@ -345,6 +346,7 @@ export default function EditarReportePage() {
                       proyecto: selectedProyecto?.nombre || formData.proyecto
                     });
                   }}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="">Seleccione un proyecto (opcional)</option>
                   {proyectos.map((proyecto) => (
@@ -352,7 +354,7 @@ export default function EditarReportePage() {
                       {proyecto.nombre} {proyecto.cliente ? `- ${proyecto.cliente}` : ""}
                     </option>
                   ))}
-                </Select>
+                </select>
                 {!formData.proyectoId && (
                   <Input
                     className="mt-2"
