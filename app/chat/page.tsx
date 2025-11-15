@@ -5,8 +5,8 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tantml:invoke>
-<invoke name="chatService } from '@/services/chat.service';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { chatService } from '@/services/chat.service';
 import { useAuthStore } from '@/store/auth-store';
 import { Header } from '@/components/layout/Header';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
