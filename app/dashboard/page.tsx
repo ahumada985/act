@@ -288,7 +288,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <ProtectedRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}>
+    <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
         <Header />
       <div className="max-w-7xl mx-auto space-y-6 py-6 px-4">

@@ -337,7 +337,7 @@ export default function NuevoReportePage() {
   );
 
   return (
-    <ProtectedRoute requiredPermission={PERMISSIONS.REPORTES_CREATE}>
+    <ProtectedRoute>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
         <Header />
       <div className="max-w-2xl mx-auto space-y-6 py-6 px-4">
