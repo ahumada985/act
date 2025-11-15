@@ -37,17 +37,18 @@ export default function ProyectosPage() {
 
   async function fetchProyectos() {
     try {
-      const { data, error } = await supabase
-        .from("Proyecto")
-        .select("*")
-        .order("createdAt", { ascending: false });
+      // DESHABILITADO - tabla Proyecto no existe
+      // const { data, error } = await supabase
+      //   .from("Proyecto")
+      //   .select("*")
+      //   .order("createdAt", { ascending: false });
 
-      if (error) throw error;
-      setProyectos(data || []);
-      setProyectosFiltrados(data || []);
+      // if (error) throw error;
+      setProyectos([]);
+      setProyectosFiltrados([]);
     } catch (error: any) {
       console.error("Error:", error);
-      alert("Error al cargar proyectos: " + error.message);
+      // alert("Error al cargar proyectos: " + error.message);
     } finally {
       setLoading(false);
     }

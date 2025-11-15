@@ -102,17 +102,19 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 sm:py-20">
           <div className="text-center">
             <div className="flex justify-center mb-6">
-              <Image
-                src="/logo.png"
-                alt="ACT Logo"
-                width={200}
-                height={80}
-                priority
-                className="object-contain"
-              />
+              <div className="bg-white p-4 rounded-lg shadow-lg">
+                <Image
+                  src="/logo.png"
+                  alt="Northtek Logo"
+                  width={200}
+                  height={80}
+                  priority
+                  className="object-contain"
+                />
+              </div>
             </div>
             <h1 className="text-4xl sm:text-6xl font-bold mb-4">
-              ACT Reportes
+              Northtek Reportes
             </h1>
             <p className="text-xl sm:text-2xl text-blue-100 mb-8 max-w-3xl mx-auto">
               Sistema Profesional de Reportabilidad para Proyectos de Telecomunicaciones en Minería
@@ -294,7 +296,7 @@ export default function Home() {
             Ventajas Competitivas
           </h2>
           <p className="text-gray-600 text-center mb-8">
-            Por qué ACT Reportes supera a las alternativas tradicionales
+            Por qué Northtek Reportes supera a las alternativas tradicionales
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -422,7 +424,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="bg-gray-900 text-gray-300 py-8 mt-16">
         <div className="max-w-7xl mx-auto px-4 text-center">
-          <p className="mb-2">© 2025 ACT Reportes - Sistema Profesional de Reportabilidad</p>
+          <p className="mb-2">© 2025 Northtek Reportes - Sistema Profesional de Reportabilidad</p>
           <p className="text-sm text-gray-500">
             Diseñado específicamente para proyectos de telecomunicaciones en minería
           </p>

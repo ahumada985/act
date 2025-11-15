@@ -34,6 +34,8 @@ import {
   Line
 } from "recharts";
 import { Header } from "@/components/layout/Header";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/rbac/permissions";
 
 interface EstadisticasData {
   totalReportes: number;
@@ -115,12 +117,12 @@ export default function DashboardPage() {
 
       if (supervisoresError) throw supervisoresError;
 
-      // Obtener todos los proyectos
-      const { data: proyectos, error: proyectosError } = await supabase
-        .from("Proyecto")
-        .select("*");
+      // DESHABILITADO - tabla Proyecto no existe
+      // const { data: proyectos, error: proyectosError } = await supabase
+      //   .from("Proyecto")
+      //   .select("*");
 
-      if (proyectosError) throw proyectosError;
+      // if (proyectosError) throw proyectosError;
 
       // Calcular estadísticas
       const totalReportes = reportes?.length || 0;
@@ -173,48 +175,54 @@ export default function DashboardPage() {
       const reportesPorSemana = calcularReportesPorSemana(reportes || []);
 
       // Nuevas métricas de minería
-      const totalProyectos = proyectos?.length || 0;
-      const proyectosActivos = proyectos?.filter(p => p.estado === "ACTIVO").length || 0;
+      const totalProyectos = 0; // DESHABILITADO - tabla Proyecto no existe
+      const proyectosActivos = 0; // DESHABILITADO - tabla Proyecto no existe
       const reportesConGPS = reportes?.filter(r => r.latitud && r.longitud).length || 0;
 
+      // DESHABILITADO - tabla Proyecto no existe
       // Reportes por proyecto (top 10)
-      const reportesPorProyectoMap: Record<string, { cantidad: number; cliente: string }> = {};
-      reportes?.forEach(r => {
-        if (r.proyectoId) {
-          const proyecto = proyectos?.find(p => p.id === r.proyectoId);
-          if (proyecto) {
-            if (!reportesPorProyectoMap[proyecto.nombre]) {
-              reportesPorProyectoMap[proyecto.nombre] = { cantidad: 0, cliente: proyecto.cliente || "Sin cliente" };
-            }
-            reportesPorProyectoMap[proyecto.nombre].cantidad++;
-          }
-        }
-      });
+      // const reportesPorProyectoMap: Record<string, { cantidad: number; cliente: string }> = {};
+      // reportes?.forEach(r => {
+      //   if (r.proyectoId) {
+      //     const proyecto = proyectos?.find(p => p.id === r.proyectoId);
+      //     if (proyecto) {
+      //       if (!reportesPorProyectoMap[proyecto.nombre]) {
+      //         reportesPorProyectoMap[proyecto.nombre] = { cantidad: 0, cliente: proyecto.cliente || "Sin cliente" };
+      //       }
+      //       reportesPorProyectoMap[proyecto.nombre].cantidad++;
+      //     }
+      //   }
+      // });
 
-      const reportesPorProyecto = Object.entries(reportesPorProyectoMap)
-        .map(([proyecto, data]) => ({
-          proyecto,
-          cantidad: data.cantidad,
-          cliente: data.cliente
-        }))
-        .sort((a, b) => b.cantidad - a.cantidad)
-        .slice(0, 10);
+      // const reportesPorProyecto = Object.entries(reportesPorProyectoMap)
+      //   .map(([proyecto, data]) => ({
+      //     proyecto,
+      //     cantidad: data.cantidad,
+      //     cliente: data.cliente
+      //   }))
+      //   .sort((a, b) => b.cantidad - a.cantidad)
+      //   .slice(0, 10);
 
+      const reportesPorProyecto: { proyecto: string; cantidad: number; cliente: string }[] = [];
+
+      // DESHABILITADO - tabla Proyecto no existe
       // Reportes por cliente minero
-      const reportesPorClienteMap: Record<string, number> = {};
-      reportes?.forEach(r => {
-        if (r.proyectoId) {
-          const proyecto = proyectos?.find(p => p.id === r.proyectoId);
-          if (proyecto && proyecto.cliente) {
-            reportesPorClienteMap[proyecto.cliente] = (reportesPorClienteMap[proyecto.cliente] || 0) + 1;
-          }
-        }
-      });
+      // const reportesPorClienteMap: Record<string, number> = {};
+      // reportes?.forEach(r => {
+      //   if (r.proyectoId) {
+      //     const proyecto = proyectos?.find(p => p.id === r.proyectoId);
+      //     if (proyecto && proyecto.cliente) {
+      //       reportesPorClienteMap[proyecto.cliente] = (reportesPorClienteMap[proyecto.cliente] || 0) + 1;
+      //     }
+      //   }
+      // });
 
-      const reportesPorCliente = Object.entries(reportesPorClienteMap)
-        .map(([cliente, cantidad]) => ({ cliente, cantidad }))
-        .sort((a, b) => b.cantidad - a.cantidad)
-        .slice(0, 8);
+      // const reportesPorCliente = Object.entries(reportesPorClienteMap)
+      //   .map(([cliente, cantidad]) => ({ cliente, cantidad }))
+      //   .sort((a, b) => b.cantidad - a.cantidad)
+      //   .slice(0, 8);
+
+      const reportesPorCliente: { cliente: string; cantidad: number }[] = [];
 
       setEstadisticas({
         totalReportes,
@@ -280,13 +288,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-      <Header />
+    <ProtectedRoute requiredPermission={PERMISSIONS.DASHBOARD_VIEW}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+        <Header />
       <div className="max-w-7xl mx-auto space-y-6 py-6 px-4">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-blue-600">Dashboard ACT</h1>
+            <h1 className="text-3xl font-bold text-blue-600">Dashboard Northtek</h1>
             <p className="text-gray-600 mt-1">
               Estadísticas y métricas de reportes de terreno
             </p>
@@ -630,6 +639,7 @@ export default function DashboardPage() {
           </Card>
         )}
       </div>
-    </div>
+      </div>
+    </ProtectedRoute>
   );
 }

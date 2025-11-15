@@ -56,7 +56,7 @@ export default function GaleriaPage() {
 
   useEffect(() => {
     fetchFotos();
-    fetchProyectos();
+    // fetchProyectos(); // DESHABILITADO - tabla Proyecto no existe
   }, []);
 
   useEffect(() => {
@@ -104,19 +104,20 @@ export default function GaleriaPage() {
     }
   }
 
-  async function fetchProyectos() {
-    try {
-      const { data, error } = await supabase
-        .from("Proyecto")
-        .select("id, nombre, cliente")
-        .order("nombre");
+  // DESHABILITADO - tabla Proyecto no existe
+  // async function fetchProyectos() {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("Proyecto")
+  //       .select("id, nombre, cliente")
+  //       .order("nombre");
 
-      if (error) throw error;
-      setProyectos(data || []);
-    } catch (error: any) {
-      console.error("Error al cargar proyectos:", error);
-    }
-  }
+  //     if (error) throw error;
+  //     setProyectos(data || []);
+  //   } catch (error: any) {
+  //     console.error("Error al cargar proyectos:", error);
+  //   }
+  // }
 
   function aplicarFiltros() {
     let filtered = [...fotos];

@@ -1,9 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
+/**
+ * Supabase client para Client Components
+ * Para usar en componentes del navegador
+ */
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+import { createBrowserClient } from '@supabase/ssr';
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export function createClient() {
+  return createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+}
+
+// Cliente singleton para compatibilidad con código existente
+export const supabase = createClient();
 
 // Función para subir archivos al storage
 export async function uploadFile(

@@ -1,8 +1,20 @@
-# 🏗️ ACT Reportes - Sistema de Reportabilidad Minera
+# 🏗️ Northtek Reportes - Sistema de Reportabilidad v2.0
 
-Sistema completo de reportabilidad para proyectos mineros de telecomunicaciones en Chile.
+Sistema completo de reportabilidad para proyectos mineros de telecomunicaciones en Chile con **arquitectura moderna y optimizada**.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ahumada985/act)
+
+## 🆕 **Novedades v2.0 - Arquitectura Optimizada**
+
+- ⚡ **React Query** - Cache inteligente y sincronización automática
+- 🏪 **Zustand Stores** - Estado global optimizado con persistencia
+- 🏛️ **Services Layer** - Capa de servicios centralizada
+- 🎣 **Custom Hooks** - Hooks reutilizables y testeables
+- 🚀 **Componentes Memoizados** - Performance optimizada
+- 📝 **TypeScript Strict** - Type-safety completo
+- 📚 **Documentación Completa** - Guías de arquitectura y migración
+
+👉 Ver [ARQUITECTURA.md](./ARQUITECTURA.md) para detalles completos
 
 ## 🌟 Características Principales
 
@@ -57,7 +69,7 @@ Sistema completo de reportabilidad para proyectos mineros de telecomunicaciones 
 ### 📱 PWA Optimizado
 - ✅ Instalable como app nativa
 - ✅ Funciona offline
-- ✅ Íconos con logo ACT
+- ✅ Íconos con logo Northtek
 - ✅ 5 shortcuts de acceso rápido
 - ✅ Push notifications (próximamente)
 
@@ -68,15 +80,28 @@ Sistema completo de reportabilidad para proyectos mineros de telecomunicaciones 
 
 ## 🚀 Tecnologías
 
-- **Frontend**: Next.js 14, React 18, TypeScript
+### Core
+- **Frontend**: Next.js 14 (App Router), React 18, TypeScript
 - **Styling**: Tailwind CSS + CSS personalizado
-- **Base de Datos**: Supabase (PostgreSQL)
+- **UI**: shadcn/ui + Lucide Icons
+
+### Estado y Data (v2.0) ⭐
+- **TanStack React Query** - Server state management
+- **Zustand** - Client state management
+- **React Hook Form** - Manejo de formularios
+- **Zod** - Validación de schemas
+
+### Backend y Base de Datos
+- **Supabase** - Backend as a Service (PostgreSQL)
+- **Prisma** - ORM
+
+### Features Especiales
 - **Mapas**: Leaflet + React Leaflet
 - **Gráficos**: Recharts
-- **PWA**: next-pwa
+- **PWA**: next-pwa (offline-first)
 - **Exportación**: xlsx (Excel)
 - **PDF**: @react-pdf/renderer
-- **UI**: shadcn/ui + Lucide Icons
+- **IA**: Google Gemini Vision (análisis de imágenes)
 
 ## 📋 Prerequisitos
 
@@ -160,7 +185,7 @@ Ver guía detallada en [DEPLOYMENT.md](./DEPLOYMENT.md)
 1. Abre la URL de Vercel en Chrome
 2. Menú (⋮) → "Añadir a pantalla de inicio"
 3. Confirma
-4. ¡El icono ACT aparecerá en tu pantalla!
+4. ¡El icono Northtek aparecerá en tu pantalla!
 
 ### iOS (Safari):
 1. Abre la URL en Safari
@@ -168,7 +193,7 @@ Ver guía detallada en [DEPLOYMENT.md](./DEPLOYMENT.md)
 3. Confirma
 4. ¡Listo!
 
-## 🏗️ Estructura del Proyecto
+## 🏗️ Estructura del Proyecto (v2.0)
 
 ```
 act-reportes/
@@ -185,21 +210,34 @@ act-reportes/
 │   ├── galeria/                # 🖼️ Galería de fotos
 │   └── etiquetas/              # 🏷️ Gestión de etiquetas
 ├── components/
-│   ├── ui/                     # Componentes base
+│   ├── common/                 # ⭐ Componentes reutilizables memoizados
+│   ├── providers/              # ⭐ React providers (React Query, etc)
+│   ├── ui/                     # Componentes base (shadcn/ui)
 │   ├── forms/                  # Formularios dinámicos
-│   ├── layout/                 # Header, etc.
+│   ├── layout/                 # Header, OfflineIndicator
 │   └── maps/                   # Componentes de mapa
+├── constants/                   # ⭐ Constantes centralizadas
+├── hooks/
+│   ├── queries/                # ⭐ React Query hooks personalizados
+│   └── [otros hooks]           # Custom hooks
 ├── lib/
 │   ├── supabase/              # Cliente Supabase
 │   ├── pdf/                   # Generador PDF
-│   └── hooks/                 # Custom hooks
+│   └── hooks/                 # Legacy hooks
+├── services/                    # ⭐ Capa de servicios (API calls)
+├── stores/                      # ⭐ Zustand stores
+├── types/                       # TypeScript types
+├── utils/                       # ⭐ Funciones utilitarias
 ├── prisma/                     # Schema y migraciones
-├── public/                     # Assets estáticos + PWA
-│   ├── manifest.json          # PWA manifest
-│   ├── icon-*.png             # Íconos PWA
-│   └── logo.png               # Logo ACT
-└── types/                      # TypeScript types
+└── public/                     # Assets estáticos + PWA
+    ├── manifest.json          # PWA manifest
+    ├── icon-*.png             # Íconos PWA
+    └── logo.png               # Logo Northtek
+
+⭐ = Nuevo en v2.0
 ```
+
+Ver estructura completa y patrones en [ARQUITECTURA.md](./ARQUITECTURA.md)
 
 ## 📊 Proyectos Mineros Incluidos
 
@@ -268,6 +306,11 @@ git push origin main
 
 ## 📚 Documentación Adicional
 
+### Arquitectura v2.0
+- **[ARQUITECTURA.md](./ARQUITECTURA.md)** - 📖 Guía completa de arquitectura, patrones y mejores prácticas
+- **[MIGRACION.md](./MIGRACION.md)** - 🔄 Guía paso a paso para migrar componentes existentes
+
+### Deployment
 - [DEPLOYMENT.md](./DEPLOYMENT.md) - Guía completa de deployment
 - [prisma/INSTRUCCIONES_SUPABASE.md](./prisma/INSTRUCCIONES_SUPABASE.md) - Setup de Supabase
 
@@ -296,12 +339,20 @@ git push origin main
 
 ## 📄 Licencia
 
-Propiedad de ACT Chile - Sistema de Reportabilidad 2025
+Propiedad de Northtek Chile - Sistema de Reportabilidad 2025
 
 ## 🤖 Desarrollado con
 
 Este proyecto fue desarrollado con asistencia de Claude Code de Anthropic.
 
+### Arquitectura v2.0
+- Refactorización completa a patrones modernos
+- Services Layer, React Query, Zustand
+- Componentes optimizados y memoizados
+- Documentación exhaustiva
+
 ---
 
 **🎉 ¡Listo para usar!** Deploy a Vercel, instala en tu celular y comienza a reportar.
+
+**📖 Para desarrolladores:** Lee [ARQUITECTURA.md](./ARQUITECTURA.md) para entender la nueva arquitectura v2.0

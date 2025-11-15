@@ -4,17 +4,19 @@ import Script from "next/script";
 import "./globals.css";
 import { OfflineIndicator } from "@/components/layout/OfflineIndicator";
 import { PrecachePages } from "@/components/pwa/PrecachePages";
+import { AppProviders } from "@/components/providers";
+import { ErrorBoundary } from "@/components/common";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "ACT Reportes - Sistema de Reportabilidad",
+  title: "Northtek Reportes - Sistema de Reportabilidad",
   description: "Sistema de reportes diarios para supervisores de telecomunicaciones",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "ACT Reportes",
+    title: "Northtek Reportes",
     startupImage: [
       {
         url: "/icon-512x512.png",
@@ -99,9 +101,13 @@ export default function RootLayout({
         />
       </head>
       <body className={inter.className}>
-        <OfflineIndicator />
-        <PrecachePages />
-        {children}
+        <ErrorBoundary>
+          <AppProviders>
+            <OfflineIndicator />
+            <PrecachePages />
+            {children}
+          </AppProviders>
+        </ErrorBoundary>
       </body>
     </html>
   );

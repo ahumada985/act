@@ -25,56 +25,64 @@ const TIPOS_TRABAJO = [
 
 const ESTADOS = ['BORRADOR', 'ENVIADO', 'APROBADO', 'RECHAZADO'];
 
+// 🏔️ PROYECTOS MINEROS DE TELECOMUNICACIONES
 const PROYECTOS = [
-  'Proyecto Metro Santiago',
-  'Red Fibra Óptica Región Metropolitana',
-  'Instalación Antenas 5G',
-  'Sistema CCTV Mall Plaza',
-  'Data Center Banco Chile',
-  'Mantenimiento Torres Entel',
-  'Conectividad Escuela Rural',
-  'Red Campus Universidad',
-  'Sistema Seguridad Aeropuerto',
-  'Fibra Óptica Edificio Corporativo'
+  'Mina El Teniente - Fibra Óptica',
+  'Mina Escondida - Red Datos',
+  'Mina Los Pelambres - Sistema CCTV',
+  'Mina Chuquicamata - Antenas 4G/5G',
+  'Mina Collahuasi - Data Center',
+  'Mina Los Bronces - Backbone Fibra',
+  'Mina Candelaria - Red Comunicaciones',
+  'Mina El Salvador - Sistemas Digitales',
+  'Mina Centinela - Infraestructura TI',
+  'Mina Gabriela Mistral - Red Minera',
+  'Mina Radomiro Tomic - Telecomunicaciones',
+  'Mina Andina - Conectividad Industrial'
 ];
 
+// 🏔️ COMUNAS Y REGIONES MINERAS DE CHILE
 const COMUNAS = [
-  'Santiago',
-  'Providencia',
-  'Las Condes',
-  'Vitacura',
-  'Maipú',
-  'Puente Alto',
-  'La Florida',
-  'San Bernardo',
-  'Ñuñoa',
-  'Recoleta'
+  'Calama',           // Chuquicamata, Radomiro Tomic
+  'Antofagasta',      // Escondida, Centinela
+  'Copiapó',          // Candelaria
+  'Diego de Almagro', // El Salvador
+  'Rancagua',         // El Teniente
+  'Los Andes',        // Los Bronces, Andina
+  'Salamanca',        // Los Pelambres
+  'Pozo Almonte',     // Collahuasi
+  'María Elena',      // Gabriela Mistral
+  'Taltal'            // Otras operaciones
 ];
 
+// ⛏️ EMPRESAS MINERAS Y CLIENTES
 const CLIENTES = [
-  'Movistar Chile',
-  'Entel',
-  'Claro',
-  'WOM',
-  'VTR',
-  'GTD',
-  'Mundo Pacífico',
-  'Telefónica',
-  'Nextel',
-  'Netline'
+  'Codelco Chile',
+  'BHP Billiton',
+  'Anglo American',
+  'Antofagasta Minerals',
+  'Teck Resources',
+  'Glencore',
+  'Lundin Mining',
+  'KGHM Internacional',
+  'Freeport-McMoRan',
+  'Capstone Copper'
 ];
 
+// 📝 DESCRIPCIONES ESPECÍFICAS PARA MINERÍA
 const DESCRIPCIONES = [
-  'Instalación completada según especificaciones técnicas. Todo operativo.',
-  'Tendido de fibra óptica en ductos subterráneos. Sin inconvenientes.',
-  'Configuración y puesta en marcha de equipamiento. Pruebas exitosas.',
-  'Mantenimiento preventivo realizado. Sistema operando correctamente.',
-  'Instalación de antenas con orientación óptima. Señal verificada.',
-  'Cableado estructurado completo. Certificación de enlaces OK.',
-  'Sistema de cámaras instalado y configurado. Grabación activa.',
-  'Empalmes de fibra realizados. Pérdidas dentro de rango aceptable.',
-  'Equipos instalados en rack. Documentación actualizada.',
-  'Trabajo finalizado según cronograma. Cliente conforme.'
+  'Instalación de fibra óptica en zona de extracción. Ductos protegidos contra polvo y vibración.',
+  'Tendido de cable backbone entre rajo y planta concentradora. Certificación OK.',
+  'Instalación de antenas en torre de comunicaciones mina. Cobertura 4G verificada.',
+  'Sistema CCTV perimetral instalado. 24 cámaras PTZ operativas en sector chancado.',
+  'Configuración de switches industriales en subestación eléctrica. Red operativa.',
+  'Empalmes de fibra en galería nivel -200. Pérdidas bajo 0.3dB. Conforme.',
+  'Data Center modular instalado en zona administrativa. Climatización y UPS OK.',
+  'Red WiFi industrial desplegada en área de mantención. 15 AP operativos.',
+  'Cableado estructurado categoría 6A en edificio de operaciones. Certificado.',
+  'Sistema de radiocomunicación instalado. Cobertura interior mina verificada.',
+  'Enlace microondas punto a punto configurado. 1Gbps entre campamento y mina.',
+  'Actualización de core de red en centro de control. Migración sin incidentes.'
 ];
 
 function randomItem<T>(array: T[]): T {
@@ -88,12 +96,21 @@ function randomDate(daysAgo: number): Date {
 }
 
 function randomCoords() {
-  // Coordenadas aproximadas de Santiago, Chile
-  const latBase = -33.45;
-  const lonBase = -70.66;
+  // Coordenadas de diferentes zonas mineras de Chile
+  const zonasMineras = [
+    { lat: -22.45, lon: -68.93, nombre: 'Calama (Chuquicamata)' },
+    { lat: -23.65, lon: -70.40, nombre: 'Antofagasta (Escondida)' },
+    { lat: -27.36, lon: -70.33, nombre: 'Copiapó (Candelaria)' },
+    { lat: -34.17, lon: -70.74, nombre: 'Rancagua (El Teniente)' },
+    { lat: -32.41, lon: -70.29, nombre: 'Los Andes (Los Bronces)' },
+    { lat: -31.71, lon: -70.95, nombre: 'Salamanca (Los Pelambres)' },
+    { lat: -20.96, lon: -68.63, nombre: 'Collahuasi' },
+  ];
+
+  const zona = randomItem(zonasMineras);
   return {
-    latitud: latBase + (Math.random() - 0.5) * 0.2,
-    longitud: lonBase + (Math.random() - 0.5) * 0.2
+    latitud: zona.lat + (Math.random() - 0.5) * 0.1,
+    longitud: zona.lon + (Math.random() - 0.5) * 0.1
   };
 }
 
@@ -141,7 +158,14 @@ async function poblarDatos() {
           observaciones: Math.random() > 0.5 ? 'Sin observaciones adicionales' : 'Revisar informe técnico adjunto',
           direccion: `Av. Principal ${Math.floor(Math.random() * 9999) + 1}`,
           comuna,
-          region: 'Región Metropolitana',
+          region: randomItem([
+            'Región de Antofagasta',
+            'Región de Atacama',
+            'Región de Coquimbo',
+            'Región de Valparaíso',
+            'Región Metropolitana',
+            'Región del Libertador Gral. Bernardo O\'Higgins'
+          ]),
           latitud: coords.latitud,
           longitud: coords.longitud,
           supervisorId: supervisor.id,

@@ -10,14 +10,17 @@ import { CameraCapture } from "@/components/forms/CameraCapture";
 import { AudioCapture } from "@/components/forms/AudioCapture";
 import { VoiceInput } from "@/components/forms/VoiceInput";
 import { AnalisisIAPanel } from "@/components/ia/AnalisisIAPanel";
+import { AIDescriptionGenerator } from "@/components/ai/AIDescriptionGenerator";
+import { OCRCapture } from "@/components/ocr/OCRCapture";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Camera, MapPin, Save, Loader2, X, Mic, WifiOff, Wifi } from "lucide-react";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { PERMISSIONS } from "@/lib/rbac/permissions";
 import type { TipoTrabajo } from "@/lib/ia/prompts";
 import type { AnalisisIA } from "@/app/api/vision/analyze/route";
 
@@ -62,7 +65,7 @@ export default function NuevoReportePage() {
 
   useEffect(() => {
     fetchPlantillas();
-    fetchProyectos();
+    // fetchProyectos(); // DESHABILITADO - tabla Proyecto no existe
   }, []);
 
   // Debug: Verificar estado para mostrar IA
@@ -100,20 +103,21 @@ export default function NuevoReportePage() {
     }
   }
 
-  async function fetchProyectos() {
-    try {
-      const { data } = await supabase
-        .from("Proyecto")
-        .select("*")
-        .eq("estado", "ACTIVO")
-        .order("nombre");
+  // DESHABILITADO - tabla Proyecto no existe
+  // async function fetchProyectos() {
+  //   try {
+  //     const { data } = await supabase
+  //       .from("Proyecto")
+  //       .select("*")
+  //       .eq("estado", "ACTIVO")
+  //       .order("nombre");
 
-      if (data) setProyectos(data);
-    } catch (error) {
-      console.log('[Offline] No se pudieron cargar proyectos:', error);
-      // No hacer nada, simplemente no carga los proyectos
-    }
-  }
+  //     if (data) setProyectos(data);
+  //   } catch (error) {
+  //     console.log('[Offline] No se pudieron cargar proyectos:', error);
+  //     // No hacer nada, simplemente no carga los proyectos
+  //   }
+  // }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
@@ -333,8 +337,9 @@ export default function NuevoReportePage() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-      <Header />
+    <ProtectedRoute requiredPermission={PERMISSIONS.REPORTES_CREATE}>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+        <Header />
       <div className="max-w-2xl mx-auto space-y-6 py-6 px-4">
         <Card>
           <CardHeader>
@@ -361,12 +366,13 @@ export default function NuevoReportePage() {
                 <Label htmlFor="tipoTrabajo">
                   Tipo de Trabajo <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <select
                   id="tipoTrabajo"
                   name="tipoTrabajo"
                   value={formData.tipoTrabajo}
                   onChange={handleInputChange}
                   required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <option value="">Seleccione...</option>
                   {TIPOS_TRABAJO.map((tipo) => (
@@ -374,8 +380,22 @@ export default function NuevoReportePage() {
                       {tipo.label}
                     </option>
                   ))}
-                </Select>
+                </select>
               </div>
+
+              {/* OCR para Orden de Trabajo */}
+              <OCRCapture
+                type="codes"
+                onTextExtracted={({ text, parsed }) => {
+                  if (parsed.ordenTrabajo) {
+                    setFormData(prev => ({ ...prev, ordenTrabajo: parsed.ordenTrabajo! }));
+                  }
+                  if (parsed.serie) {
+                    // Si hay un campo de serie en el formulario, actualizarlo
+                    setFormData(prev => ({ ...prev, ...parsed }));
+                  }
+                }}
+              />
 
               <div>
                 <Label htmlFor="ordenTrabajo">Orden de Trabajo</Label>
@@ -400,36 +420,14 @@ export default function NuevoReportePage() {
               </div>
 
               <div>
-                <Label htmlFor="proyectoId">Proyecto</Label>
-                <Select
-                  id="proyectoId"
-                  name="proyectoId"
-                  value={formData.proyectoId}
-                  onChange={(e) => {
-                    const selectedProyecto = proyectos.find(p => p.id === e.target.value);
-                    setFormData({
-                      ...formData,
-                      proyectoId: e.target.value,
-                      proyecto: selectedProyecto?.nombre || ""
-                    });
-                  }}
-                >
-                  <option value="">Seleccione un proyecto (opcional)</option>
-                  {proyectos.map((proyecto) => (
-                    <option key={proyecto.id} value={proyecto.id}>
-                      {proyecto.nombre} {proyecto.cliente ? `- ${proyecto.cliente}` : ""}
-                    </option>
-                  ))}
-                </Select>
-                {!formData.proyectoId && (
-                  <Input
-                    className="mt-2"
-                    name="proyecto"
-                    value={formData.proyecto}
-                    onChange={handleInputChange}
-                    placeholder="O ingrese nombre del proyecto manualmente"
-                  />
-                )}
+                <Label htmlFor="proyecto">Proyecto</Label>
+                <Input
+                  id="proyecto"
+                  name="proyecto"
+                  value={formData.proyecto}
+                  onChange={handleInputChange}
+                  placeholder="Ingrese nombre del proyecto (opcional)"
+                />
               </div>
             </CardContent>
           </Card>
@@ -508,6 +506,18 @@ export default function NuevoReportePage() {
               <CardTitle>Descripción del Trabajo</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* IA Generativa para Descripción */}
+              {formData.tipoTrabajo && fotosUrls.length > 0 && (
+                <AIDescriptionGenerator
+                  tipoTrabajo={formData.tipoTrabajo as TipoTrabajo}
+                  imageUrls={fotosUrls}
+                  context={formData.proyecto}
+                  onGenerated={(descripcion) => {
+                    setFormData(prev => ({ ...prev, descripcion }));
+                  }}
+                />
+              )}
+
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <Label htmlFor="descripcion">Descripción</Label>
@@ -756,5 +766,6 @@ export default function NuevoReportePage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   );
 }

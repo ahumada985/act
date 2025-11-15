@@ -6,8 +6,10 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload } from "lucide-react";
+import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload, MessageSquare } from "lucide-react";
 import { contarReportesPendientes } from "@/lib/offline-storage";
+import { NotificationBell } from "@/components/notifications/NotificationBell";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 export function Header() {
   const router = useRouter();
@@ -61,16 +63,16 @@ export function Header() {
         .or(`proyecto.ilike.%${searchLower}%,ordenTrabajo.ilike.%${searchLower}%,descripcion.ilike.%${searchLower}%,direccion.ilike.%${searchLower}%`)
         .limit(5);
 
-      // Buscar en proyectos
-      const { data: proyectos } = await supabase
-        .from("Proyecto")
-        .select("id, nombre, cliente, descripcion")
-        .or(`nombre.ilike.%${searchLower}%,cliente.ilike.%${searchLower}%,descripcion.ilike.%${searchLower}%`)
-        .limit(5);
+      // Buscar en proyectos - DESHABILITADO (tabla Proyecto no existe)
+      // const { data: proyectos } = await supabase
+      //   .from("Proyecto")
+      //   .select("id, nombre, cliente, descripcion")
+      //   .or(`nombre.ilike.%${searchLower}%,cliente.ilike.%${searchLower}%,descripcion.ilike.%${searchLower}%`)
+      //   .limit(5);
 
       const results = [
         ...(reportes || []).map(r => ({ ...r, type: "reporte" })),
-        ...(proyectos || []).map(p => ({ ...p, type: "proyecto" }))
+        // ...(proyectos || []).map(p => ({ ...p, type: "proyecto" }))
       ];
 
       setSearchResults(results);
@@ -114,16 +116,18 @@ export function Header() {
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition flex-shrink-0"
             onClick={() => router.push("/")}
           >
-            <Image
-              src="/logo.png"
-              alt="ACT Logo"
-              width={120}
-              height={48}
-              priority
-              className="object-contain"
-            />
+            <div className="bg-blue-600 p-2 rounded-lg">
+              <Image
+                src="/logo.png"
+                alt="Northtek Logo"
+                width={120}
+                height={48}
+                priority
+                className="object-contain"
+              />
+            </div>
             <div className="border-l border-gray-300 pl-3 hidden sm:block">
-              <h1 className="text-xl font-bold text-blue-600">ACT Reportes</h1>
+              <h1 className="text-xl font-bold text-blue-600">Northtek</h1>
               <p className="text-xs text-gray-600">Sistema de Reportabilidad</p>
             </div>
           </div>
@@ -294,6 +298,22 @@ export function Header() {
               <Tag className="h-4 w-4" />
               <span>Etiquetas</span>
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => router.push("/chat")}
+              title="Chat"
+              className="hidden md:flex gap-2"
+            >
+              <MessageSquare className="h-4 w-4" />
+              <span>Chat</span>
+            </Button>
+
+            {/* Notificaciones y Usuario */}
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l">
+              <NotificationBell />
+              <UserMenu />
+            </div>
           </div>
         </div>
       </div>

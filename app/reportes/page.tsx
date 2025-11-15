@@ -37,7 +37,7 @@ export default function ReportesPage() {
 
   useEffect(() => {
     fetchReportes();
-    fetchProyectos();
+    // fetchProyectos(); // DESHABILITADO - tabla Proyecto no existe
     cargarFiltrosGuardados();
   }, []);
 
@@ -67,19 +67,20 @@ export default function ReportesPage() {
     }
   }
 
-  async function fetchProyectos() {
-    try {
-      const { data, error } = await supabase
-        .from("Proyecto")
-        .select("id, nombre")
-        .order("nombre");
+  // DESHABILITADO - tabla Proyecto no existe
+  // async function fetchProyectos() {
+  //   try {
+  //     const { data, error } = await supabase
+  //       .from("Proyecto")
+  //       .select("id, nombre")
+  //       .order("nombre");
 
-      if (error) throw error;
-      setProyectos(data || []);
-    } catch (error: any) {
-      console.error("Error al cargar proyectos:", error);
-    }
-  }
+  //     if (error) throw error;
+  //     setProyectos(data || []);
+  //   } catch (error: any) {
+  //     console.error("Error al cargar proyectos:", error);
+  //   }
+  // }
 
   function cargarFiltrosGuardados() {
     try {
@@ -417,8 +418,9 @@ export default function ReportesPage() {
               <div className="mt-4 pt-4 border-t space-y-4">
                 <h4 className="font-semibold text-sm text-gray-700">Filtros Avanzados</h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* DESHABILITADO - tabla Proyecto no existe */}
+                  {/* <div>
                     <Label htmlFor="proyectoId">Proyecto</Label>
                     <Select
                       id="proyectoId"
@@ -430,7 +432,7 @@ export default function ReportesPage() {
                         <option key={p.id} value={p.id}>{p.nombre}</option>
                       ))}
                     </Select>
-                  </div>
+                  </div> */}
 
                   <div>
                     <Label htmlFor="fechaDesde">Fecha Desde</Label>

@@ -19,14 +19,16 @@ export default function OfflinePage() {
         <Card className="bg-white shadow-xl">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <Image
-                src="/logo.png"
-                alt="ACT Logo"
-                width={150}
-                height={60}
-                priority
-                className="object-contain"
-              />
+              <div className="bg-blue-600 p-3 rounded-lg">
+                <Image
+                  src="/logo.png"
+                  alt="Northtek Logo"
+                  width={150}
+                  height={60}
+                  priority
+                  className="object-contain"
+                />
+              </div>
             </div>
             <div className="flex justify-center mb-4">
               <div className="p-6 bg-gray-100 rounded-full">

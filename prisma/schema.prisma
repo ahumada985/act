@@ -12,6 +12,7 @@ enum UserRole {
   SUPERVISOR
   ADMIN
   GERENTE
+  CLIENTE
 }
 
 enum ReportStatus {
@@ -33,22 +34,29 @@ enum TipoTrabajo {
 
 // Modelos
 model User {
-  id            String    @id @default(uuid())
-  email         String    @unique
-  nombre        String
-  apellido      String
-  role          UserRole  @default(SUPERVISOR)
-  telefono      String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String             @id @default(uuid())
+  email             String             @unique
+  nombre            String
+  apellido          String
+  role              UserRole           @default(SUPERVISOR)
+  telefono          String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 
-  reportes      Reporte[]
+  reportes          Reporte[]
+  auditLogs         AuditLog[]
+  pushSubscriptions PushSubscription[]
+  chatsCreated      Chat[]             @relation("ChatsCreated")
+  chatMessages      ChatMessage[]
+  chatParticipants  ChatParticipant[]
+  approvalSteps     ApprovalStep[]
 
   @@index([email])
+  @@index([role])
 }
 
 model Reporte {
-  id                String        @id @default(uuid())
+  id                String             @id @default(uuid())
 
   // Metadata
   fecha             DateTime      @default(now())
@@ -86,9 +94,10 @@ model Reporte {
 
   // Relaciones
   supervisorId      String
-  supervisor        User          @relation(fields: [supervisorId], references: [id])
+  supervisor        User               @relation(fields: [supervisorId], references: [id])
 
   consolidados      ConsolidadoSemanal[]
+  approvalWorkflow  ApprovalWorkflow?
 
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
@@ -178,4 +187,184 @@ model PlantillaFormulario {
 
   createdAt       DateTime    @default(now())
   updatedAt       DateTime    @updatedAt
+}
+
+// Auditoría de acciones
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action      String   // CREATE, UPDATE, DELETE, LOGIN, LOGOUT, APPROVE, REJECT
+  entity      String   // Reporte, Proyecto, Usuario, etc.
+  entityId    String?
+  changes     Json?    // Cambios realizados (antes/después)
+  metadata    Json?    // Información adicional
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([entity])
+  @@index([createdAt])
+  @@index([entityId])
+}
+
+// Suscripciones de notificaciones push
+model PushSubscription {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// Sistema de Chat
+enum ChatType {
+  PROYECTO
+  DIRECT
+}
+
+model Chat {
+  id           String            @id @default(uuid())
+  type         ChatType          @default(DIRECT)
+  proyectoId   String?
+  nombre       String?           // Nombre del chat (opcional, para chats grupales)
+  createdBy    String
+  creator      User              @relation("ChatsCreated", fields: [createdBy], references: [id])
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  messages     ChatMessage[]
+  participants ChatParticipant[]
+
+  @@index([proyectoId])
+  @@index([type])
+}
+
+model ChatMessage {
+  id        String   @id @default(uuid())
+  chatId    String
+  chat      Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  content   String   @db.Text
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([chatId])
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model ChatParticipant {
+  id       String    @id @default(uuid())
+  chatId   String
+  chat     Chat      @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  userId   String
+  user     User      @relation(fields: [userId], references: [id])
+  lastRead DateTime?
+  joinedAt DateTime  @default(now())
+
+  @@unique([chatId, userId])
+  @@index([userId])
+}
+
+// Sistema de Aprobaciones Multi-nivel
+enum WorkflowStatus {
+  PENDING
+  IN_PROGRESS
+  APPROVED
+  REJECTED
+}
+
+enum StepStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SKIPPED
+}
+
+model ApprovalWorkflow {
+  id          String          @id @default(uuid())
+  reporteId   String          @unique
+  reporte     Reporte         @relation(fields: [reporteId], references: [id], onDelete: Cascade)
+  currentStep Int             @default(1)
+  status      WorkflowStatus  @default(PENDING)
+  steps       ApprovalStep[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([status])
+}
+
+model ApprovalStep {
+  id          String            @id @default(uuid())
+  workflowId  String
+  workflow    ApprovalWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  stepNumber  Int
+  role        UserRole          // Rol requerido para aprobar
+  status      StepStatus        @default(PENDING)
+  approverId  String?
+  approver    User?             @relation(fields: [approverId], references: [id])
+  comments    String?           @db.Text
+  approvedAt  DateTime?
+  createdAt   DateTime          @default(now())
+
+  @@index([workflowId])
+  @@index([status])
+}
+
+// Sistema de Reportes Programados
+enum ReportFrequency {
+  DAILY
+  WEEKLY
+  MONTHLY
+}
+
+enum ReportFormat {
+  PDF
+  EXCEL
+  JSON
+}
+
+model ScheduledReport {
+  id              String            @id @default(uuid())
+  nombre          String
+  descripcion     String?
+  frequency       ReportFrequency
+  format          ReportFormat      @default(PDF)
+
+  // Destinatarios
+  emails          String[]          // Array de emails a enviar
+
+  // Filtros del reporte
+  filters         Json?             // Filtros para los datos (proyecto, tipoTrabajo, etc.)
+
+  // Configuración de ejecución
+  dayOfWeek       Int?              // 0-6 para reportes semanales (0=Domingo)
+  dayOfMonth      Int?              // 1-31 para reportes mensuales
+  hour            Int               @default(8) // Hora de ejecución (0-23)
+
+  // Estado y tracking
+  active          Boolean           @default(true)
+  lastRunAt       DateTime?
+  nextRunAt       DateTime?
+  lastStatus      String?           // SUCCESS | ERROR
+  lastError       String?           @db.Text
+
+  // Relaciones
+  createdBy       String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([active])
+  @@index([frequency])
+  @@index([nextRunAt])
 }

@@ -47,3 +47,6 @@ next-env.d.ts
 # Personal documents (not project-related)
 ESTRATEGIA_REUNION_ACT.md
 PLAN_ESTUDIO_VMWARE_VCP.md
+
+.vercel
+nul
