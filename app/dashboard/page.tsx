@@ -35,7 +35,7 @@ import {
 } from "recharts";
 import { Header } from "@/components/layout/Header";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { PERMISSIONS } from "@/lib/rbac/permissions";
+// import { PERMISSIONS } from "@/lib/rbac/permissions"; // No usado
 
 interface EstadisticasData {
   totalReportes: number;
