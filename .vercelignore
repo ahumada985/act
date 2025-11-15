@@ -2,3 +2,4 @@ app/proyectos
 app/chat
 app/mapa
 app/galeria
+app/reportes/[id]/editar
