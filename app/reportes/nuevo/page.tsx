@@ -11,7 +11,7 @@ import { AudioCapture } from "@/components/forms/AudioCapture";
 import { VoiceInput } from "@/components/forms/VoiceInput";
 import { AnalisisIAPanel } from "@/components/ia/AnalisisIAPanel";
 import { AIDescriptionGenerator } from "@/components/ai/AIDescriptionGenerator";
-import { OCRCapture } from "@/components/ocr/OCRCapture";
+// OCRCapture removed - component disabled
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -383,19 +383,7 @@ export default function NuevoReportePage() {
                 </select>
               </div>
 
-              {/* OCR para Orden de Trabajo */}
-              <OCRCapture
-                type="codes"
-                onTextExtracted={({ text, parsed }) => {
-                  if (parsed.ordenTrabajo) {
-                    setFormData(prev => ({ ...prev, ordenTrabajo: parsed.ordenTrabajo! }));
-                  }
-                  if (parsed.serie) {
-                    // Si hay un campo de serie en el formulario, actualizarlo
-                    setFormData(prev => ({ ...prev, ...parsed }));
-                  }
-                }}
-              />
+              {/* OCR para Orden de Trabajo - Temporarily disabled */}
 
               <div>
                 <Label htmlFor="ordenTrabajo">Orden de Trabajo</Label>
