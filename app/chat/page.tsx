@@ -64,7 +64,7 @@ export default function ChatPage() {
     queryKey: ['chats', user?.id],
     queryFn: async () => {
       if (!user) return [];
-      return chatService.getUserChats(user.id);
+      return chatService.getMyChats(user.id);
     },
     enabled: !!user,
   });
