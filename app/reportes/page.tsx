@@ -458,28 +458,30 @@ export default function ReportesPage() {
 
                   <div>
                     <Label htmlFor="conGPS">Con GPS</Label>
-                    <Select
+                    <select
                       id="conGPS"
                       value={filtros.conGPS}
                       onChange={(e) => setFiltros({ ...filtros, conGPS: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <option value="">Todos</option>
                       <option value="si">Con GPS</option>
                       <option value="no">Sin GPS</option>
-                    </Select>
+                    </select>
                   </div>
 
                   <div>
                     <Label htmlFor="conFotos">Con Fotos</Label>
-                    <Select
+                    <select
                       id="conFotos"
                       value={filtros.conFotos}
                       onChange={(e) => setFiltros({ ...filtros, conFotos: e.target.value })}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                     >
                       <option value="">Todos</option>
                       <option value="si">Con Fotos</option>
                       <option value="no">Sin Fotos</option>
-                    </Select>
+                    </select>
                   </div>
                 </div>
 
