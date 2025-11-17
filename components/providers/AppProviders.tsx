@@ -21,7 +21,6 @@ export function AppProviders({ children }: AppProvidersProps) {
         defaultOptions: {
           queries: {
             staleTime: 5 * 60 * 1000, // 5 minutos - más tiempo de caché
-            cacheTime: 10 * 60 * 1000, // 10 minutos en memoria
             refetchOnWindowFocus: false,
             refetchOnMount: false, // No refetch al montar si hay datos en caché
             retry: 1,
