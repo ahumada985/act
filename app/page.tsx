@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
+import { Header } from "@/components/layout/Header";
 
 export default function Home() {
   const router = useRouter();
@@ -123,29 +124,7 @@ export default function Home() {
   return (
     <ProtectedRoute>
       <div className="min-h-screen bg-gray-50">
-        {/* Header simple */}
-        <div className="bg-white border-b">
-          <div className="max-w-5xl mx-auto px-4 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="bg-blue-600 p-2 rounded-lg">
-                  <Image
-                    src="/logo.png"
-                    alt="Northtek Logo"
-                    width={100}
-                    height={40}
-                    priority
-                    className="object-contain"
-                  />
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900">Northtek Reportes</h1>
-                  <p className="text-sm text-gray-500">Sistema de Reportabilidad</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Header />
 
         {/* Contenido principal */}
         <div className="max-w-5xl mx-auto px-4 py-8">
