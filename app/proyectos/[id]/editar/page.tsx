@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Save, Loader2, ArrowLeft } from "lucide-react";
 
@@ -180,18 +179,19 @@ export default function EditarProyectoPage() {
                 <Label htmlFor="estado">
                   Estado <span className="text-red-500">*</span>
                 </Label>
-                <Select
+                <select
                   id="estado"
                   name="estado"
                   value={formData.estado}
                   onChange={handleInputChange}
                   required
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
                   <option value="ACTIVO">Activo</option>
                   <option value="COMPLETADO">Completado</option>
                   <option value="PAUSADO">Pausado</option>
                   <option value="CANCELADO">Cancelado</option>
-                </Select>
+                </select>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
