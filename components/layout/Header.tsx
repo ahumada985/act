@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload, MessageSquare } from "lucide-react";
+import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload } from "lucide-react";
 import { contarReportesPendientes } from "@/lib/offline-storage";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -298,7 +298,8 @@ export function Header() {
               <Tag className="h-4 w-4" />
               <span>Etiquetas</span>
             </Button>
-            <Button
+            {/* Chat deshabilitado - página no disponible */}
+            {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => router.push("/chat")}
@@ -307,7 +308,7 @@ export function Header() {
             >
               <MessageSquare className="h-4 w-4" />
               <span>Chat</span>
-            </Button>
+            </Button> */}
 
             {/* Notificaciones y Usuario */}
             <div className="flex items-center gap-2 ml-2 pl-2 border-l">
