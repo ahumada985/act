@@ -26,6 +26,7 @@ import {
   Plus
 } from "lucide-react";
 import Image from "next/image";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 export default function Home() {
   const router = useRouter();
@@ -96,6 +97,7 @@ export default function Home() {
   ];
 
   return (
+    <ProtectedRoute>
     <div className="min-h-screen bg-white">
       {/* Header Profesional */}
       <header className="bg-gradient-to-r from-blue-600 to-blue-800 text-white">
@@ -431,5 +433,6 @@ export default function Home() {
         </div>
       </footer>
     </div>
+    </ProtectedRoute>
   );
 }

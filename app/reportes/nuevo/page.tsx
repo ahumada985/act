@@ -54,7 +54,6 @@ export default function NuevoReportePage() {
     tipoTrabajo: "",
     clienteFinal: "",
     ordenTrabajo: "",
-    proyectoId: "",
     proyecto: "",
     descripcion: "",
     observaciones: "",
@@ -204,7 +203,7 @@ export default function NuevoReportePage() {
         const reporteId = await guardarReporteOffline({
           tipoTrabajo: formData.tipoTrabajo,
           supervisorId: "supervisor-001",
-          proyectoId: formData.proyectoId || "",
+          proyectoId: "",
           descripcion: formData.descripcion,
           observaciones: formData.observaciones,
           coordenadas: gps.latitude && gps.longitude ? {
@@ -222,7 +221,6 @@ export default function NuevoReportePage() {
           tipoTrabajo: "",
           clienteFinal: "",
           ordenTrabajo: "",
-          proyectoId: "",
           proyecto: "",
           descripcion: "",
           observaciones: "",
@@ -268,7 +266,6 @@ export default function NuevoReportePage() {
           tipoTrabajo: formData.tipoTrabajo,
           clienteFinal: formData.clienteFinal,
           ordenTrabajo: formData.ordenTrabajo,
-          proyectoId: formData.proyectoId || null,
           proyecto: formData.proyecto,
           descripcion: formData.descripcion,
           observaciones: formData.observaciones,
