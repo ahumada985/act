@@ -171,7 +171,7 @@ export default function FasesPage() {
         {/* Fases del proyecto */}
         {proyectoActual && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {proyectoActual.fases.map((fase, index) => (
+            {proyectoActual.fases.map((fase: any, index: number) => (
               <Card key={index} className="hover:shadow-lg transition">
                 <CardHeader>
                   <div className="flex items-center justify-between">
