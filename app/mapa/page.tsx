@@ -46,7 +46,7 @@ export default function MapaPage() {
     try {
       const { data, error } = await supabase
         .from("Reporte")
-        .select("id, latitud, longitud, tipoTrabajo, proyecto, proyectoId, direccion, createdAt, status")
+        .select("id, latitud, longitud, tipoTrabajo, proyecto, direccion, createdAt, status")
         .not("latitud", "is", null)
         .not("longitud", "is", null)
         .order("createdAt", { ascending: false });
@@ -89,8 +89,9 @@ export default function MapaPage() {
       filtered = filtered.filter((r) => r.status === filtros.status);
     }
 
+    // Filtro por proyecto usando el nombre del proyecto (campo texto)
     if (filtros.proyectoId) {
-      filtered = filtered.filter((r) => r.proyectoId === filtros.proyectoId);
+      filtered = filtered.filter((r) => r.proyecto?.toLowerCase().includes(filtros.proyectoId.toLowerCase()));
     }
 
     if (filtros.busqueda) {

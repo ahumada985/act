@@ -66,8 +66,8 @@ export default function GaleriaPage() {
     try {
       const { data: reportes, error } = await supabase
         .from("Reporte")
-        .select("id, tipoTrabajo, status, createdAt, direccion, images, proyecto, proyectoId")
-        .not("images", "is", null)
+        .select("id, tipoTrabajo, status, createdAt, direccion, fotos, proyecto")
+        .not("fotos", "is", null)
         .order("createdAt", { ascending: false });
 
       if (error) throw error;
@@ -76,8 +76,8 @@ export default function GaleriaPage() {
       const todasLasFotos: FotoConContexto[] = [];
 
       reportes?.forEach((reporte) => {
-        if (Array.isArray(reporte.images) && reporte.images.length > 0) {
-          reporte.images.forEach((url: string) => {
+        if (Array.isArray(reporte.fotos) && reporte.fotos.length > 0) {
+          reporte.fotos.forEach((url: string) => {
             todasLasFotos.push({
               url,
               reporteId: reporte.id,
@@ -86,7 +86,7 @@ export default function GaleriaPage() {
               reporteFecha: reporte.createdAt,
               reporteDireccion: reporte.direccion,
               proyectoNombre: reporte.proyecto,
-              proyectoId: reporte.proyectoId,
+              proyectoId: "", // No existe la columna proyectoId
               cliente: "" // Se llenará al obtener proyectos
             });
           });
