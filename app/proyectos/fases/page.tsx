@@ -73,7 +73,7 @@ export default function FasesPage() {
       // Convertir a array
       const proyectosArray = Array.from(proyectosMap.values()).map(p => ({
         nombre: p.nombre,
-        fases: Array.from(p.fases.values()).map(f => ({
+        fases: Array.from(p.fases.values()).map((f: any) => ({
           nombre: f.nombre,
           reportes: f.reportes,
           total: f.total,
