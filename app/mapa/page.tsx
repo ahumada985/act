@@ -7,7 +7,6 @@ import { supabase } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Select } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Map, Filter, MapPin, Search, ChevronDown, ChevronUp } from "lucide-react";
@@ -196,24 +195,26 @@ export default function MapaPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="proyectoId">Proyecto Minero</Label>
-                  <Select
+                  <select
                     id="proyectoId"
                     value={filtros.proyectoId}
                     onChange={(e) => setFiltros({ ...filtros, proyectoId: e.target.value })}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Todos los proyectos</option>
                     {proyectos.map((p) => (
                       <option key={p.id} value={p.id}>{p.nombre}</option>
                     ))}
-                  </Select>
+                  </select>
                 </div>
 
                 <div>
                   <Label htmlFor="tipoTrabajo">Tipo de Trabajo</Label>
-                  <Select
+                  <select
                     id="tipoTrabajo"
                     value={filtros.tipoTrabajo}
                     onChange={(e) => setFiltros({ ...filtros, tipoTrabajo: e.target.value })}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Todos los tipos</option>
                     <option value="FIBRA_OPTICA">Fibra Óptica</option>
@@ -223,22 +224,23 @@ export default function MapaPage() {
                     <option value="INSTALACION_RED">Instalación Red</option>
                     <option value="MANTENIMIENTO">Mantenimiento</option>
                     <option value="OTRO">Otro</option>
-                  </Select>
+                  </select>
                 </div>
 
                 <div>
                   <Label htmlFor="status">Estado</Label>
-                  <Select
+                  <select
                     id="status"
                     value={filtros.status}
                     onChange={(e) => setFiltros({ ...filtros, status: e.target.value })}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Todos los estados</option>
                     <option value="BORRADOR">Borrador</option>
                     <option value="ENVIADO">Enviado</option>
                     <option value="APROBADO">Aprobado</option>
                     <option value="RECHAZADO">Rechazado</option>
-                  </Select>
+                  </select>
                 </div>
               </div>
 

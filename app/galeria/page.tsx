@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import {
   Image as ImageIcon,
@@ -252,24 +251,26 @@ export default function GaleriaPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <Label htmlFor="proyectoId">Proyecto Minero</Label>
-                  <Select
+                  <select
                     id="proyectoId"
                     value={filtros.proyectoId}
                     onChange={(e) => setFiltros({ ...filtros, proyectoId: e.target.value })}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Todos los proyectos</option>
                     {proyectos.map((p) => (
                       <option key={p.id} value={p.id}>{p.nombre}</option>
                     ))}
-                  </Select>
+                  </select>
                 </div>
 
                 <div>
                   <Label htmlFor="tipoTrabajo">Tipo de Trabajo</Label>
-                  <Select
+                  <select
                     id="tipoTrabajo"
                     value={filtros.tipoTrabajo}
                     onChange={(e) => setFiltros({ ...filtros, tipoTrabajo: e.target.value })}
+                    className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   >
                     <option value="">Todos los tipos</option>
                     <option value="FIBRA_OPTICA">Fibra Óptica</option>
@@ -279,7 +280,7 @@ export default function GaleriaPage() {
                     <option value="INSTALACION_RED">Instalación Red</option>
                     <option value="MANTENIMIENTO">Mantenimiento</option>
                     <option value="OTRO">Otro</option>
-                  </Select>
+                  </select>
                 </div>
 
                 <div>
