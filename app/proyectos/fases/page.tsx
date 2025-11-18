@@ -74,7 +74,10 @@ export default function FasesPage() {
       const proyectosArray = Array.from(proyectosMap.values()).map(p => ({
         nombre: p.nombre,
         fases: Array.from(p.fases.values()).map(f => ({
-          ...f,
+          nombre: f.nombre,
+          reportes: f.reportes,
+          total: f.total,
+          completados: f.completados,
           porcentaje: f.total > 0 ? Math.round((f.completados / f.total) * 100) : 0
         }))
       }));
