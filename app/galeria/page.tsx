@@ -66,8 +66,7 @@ export default function GaleriaPage() {
     try {
       const { data: reportes, error } = await supabase
         .from("Reporte")
-        .select("id, tipoTrabajo, status, createdAt, direccion, fotos, proyecto")
-        .not("fotos", "is", null)
+        .select("id, tipoTrabajo, status, createdAt, direccion, proyecto, fotos:Foto(id, url, orden)")
         .order("createdAt", { ascending: false });
 
       if (error) throw error;
@@ -77,9 +76,9 @@ export default function GaleriaPage() {
 
       reportes?.forEach((reporte) => {
         if (Array.isArray(reporte.fotos) && reporte.fotos.length > 0) {
-          reporte.fotos.forEach((url: string) => {
+          reporte.fotos.forEach((foto: any) => {
             todasLasFotos.push({
-              url,
+              url: foto.url,
               reporteId: reporte.id,
               reporteTipo: reporte.tipoTrabajo,
               reporteStatus: reporte.status,
