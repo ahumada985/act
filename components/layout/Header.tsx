@@ -108,7 +108,7 @@ export function Header() {
   };
 
   return (
-    <header className="bg-gradient-to-r from-slate-900 to-slate-800 shadow-xl border-b border-orange-500/30">
+    <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Logo */}
@@ -116,22 +116,19 @@ export function Header() {
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition flex-shrink-0"
             onClick={() => router.push("/")}
           >
-            <div className="bg-orange-500 p-2 rounded-lg shadow-lg">
+            <div className="bg-blue-600 p-2 rounded-lg">
               <Image
                 src="/logo.png"
-                alt="ACT Reportes Logo"
+                alt="Northtek Logo"
                 width={100}
                 height={40}
                 priority
                 className="object-contain"
               />
             </div>
-            <div className="border-l border-slate-600 pl-3 hidden sm:block">
-              <div className="flex items-center gap-1">
-                <Mountain className="h-4 w-4 text-orange-500" />
-                <h1 className="text-lg font-bold text-white">ACT Reportes</h1>
-              </div>
-              <p className="text-xs text-slate-400">Reportabilidad Minera</p>
+            <div className="border-l border-gray-200 pl-3 hidden sm:block">
+              <h1 className="text-lg font-bold text-gray-900">Northtek</h1>
+              <p className="text-xs text-gray-500">Sistema de Reportes</p>
             </div>
           </div>
 
@@ -214,7 +211,7 @@ export function Header() {
           </div>
 
           {/* Navegación */}
-          <div className="flex items-center gap-2 flex-shrink-0">
+          <div className="flex items-center gap-1 flex-shrink-0">
             {/* Reportes Pendientes - Visible siempre si hay reportes */}
             {reportesPendientes > 0 && (
               <Button
@@ -222,7 +219,7 @@ export function Header() {
                 size="sm"
                 onClick={() => router.push("/reportes/pendientes")}
                 title="Reportes Pendientes"
-                className="bg-amber-500 hover:bg-amber-600 text-slate-900 font-semibold gap-2 relative"
+                className="bg-orange-500 hover:bg-orange-600 text-white font-medium gap-2 relative"
               >
                 <Upload className="h-4 w-4" />
                 <span className="hidden sm:inline">Pendientes</span>
@@ -236,7 +233,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/")}
               title="Inicio"
-              className="hidden md:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden md:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <Home className="h-4 w-4" />
               <span>Inicio</span>
@@ -246,7 +243,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/dashboard")}
               title="Dashboard"
-              className="hidden lg:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden lg:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <BarChart3 className="h-4 w-4" />
               <span>Dashboard</span>
@@ -256,7 +253,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/reportes")}
               title="Reportes"
-              className="hidden md:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden md:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <FileText className="h-4 w-4" />
               <span>Reportes</span>
@@ -266,7 +263,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/proyectos")}
               title="Proyectos"
-              className="hidden md:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden md:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <Briefcase className="h-4 w-4" />
               <span>Proyectos</span>
@@ -276,7 +273,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/mapa")}
               title="Mapa"
-              className="hidden lg:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden lg:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <Map className="h-4 w-4" />
               <span>Mapa</span>
@@ -286,7 +283,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/galeria")}
               title="Galería"
-              className="hidden lg:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden lg:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <ImageIcon className="h-4 w-4" />
               <span>Galería</span>
@@ -296,7 +293,7 @@ export function Header() {
               size="sm"
               onClick={() => router.push("/etiquetas")}
               title="Etiquetas"
-              className="hidden xl:flex gap-2 text-slate-300 hover:text-orange-500 hover:bg-slate-700"
+              className="hidden xl:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
               <Tag className="h-4 w-4" />
               <span>Etiquetas</span>
@@ -314,7 +311,7 @@ export function Header() {
             </Button> */}
 
             {/* Notificaciones y Usuario */}
-            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-slate-600">
+            <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
               <NotificationBell />
               <UserMenu />
             </div>
