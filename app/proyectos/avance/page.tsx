@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase/client";
 import { Header } from "@/components/layout/Header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
+// Progress component - usando HTML nativo
 import {
   TrendingUp,
   ArrowLeft,
@@ -203,7 +203,12 @@ export default function AvancePage() {
                     </span>
                   </div>
 
-                  <Progress value={proyecto.porcentajeAprobado} className="h-3" />
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div
+                      className="bg-blue-600 h-3 rounded-full transition-all"
+                      style={{ width: `${proyecto.porcentajeAprobado}%` }}
+                    ></div>
+                  </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                     <div className="flex items-center gap-2">
