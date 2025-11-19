@@ -129,7 +129,7 @@ export default function Home() {
           {/* Grid de módulos */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {modules.map((module, index) => {
-              const colors = getColorClasses(module.color, module.primary);
+              const colors = getColorClasses(module.color);
               return (
                 <Card
                   key={index}
