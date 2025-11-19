@@ -83,33 +83,49 @@ export default function CuadrillasPage() {
 
   async function fetchData() {
     try {
-      // Obtener supervisores
-      const { data: sups } = await supabase
-        .from("User")
-        .select("id, nombre, apellido, avatar")
-        .eq("role", "SUPERVISOR")
-        .order("nombre");
+      // Ejecutar todas las consultas en paralelo para mayor velocidad
+      const [supsResult, cuadsResult, integrantesResult] = await Promise.all([
+        // Obtener supervisores (excluir admin ACT)
+        supabase
+          .from("User")
+          .select("id, nombre, apellido, avatar")
+          .eq("role", "SUPERVISOR")
+          .not("email", "ilike", "%admin%")
+          .order("nombre"),
 
-      setSupervisores(sups || []);
+        // Obtener cuadrillas
+        supabase
+          .from("cuadrilla")
+          .select("*")
+          .order("nombre"),
 
-      // Obtener cuadrillas
-      const { data: cuads, error } = await supabase
-        .from("Cuadrilla")
-        .select("*")
-        .order("nombre");
+        // Obtener integrantes
+        supabase
+          .from("integrantecuadrilla")
+          .select("*")
+      ]);
 
-      if (error) throw error;
+      const sups = supsResult.data || [];
+      const cuads = cuadsResult.data || [];
+      const integrantes = integrantesResult.data || [];
 
-      // Obtener integrantes
-      const { data: integrantes } = await supabase
-        .from("IntegranteCuadrilla")
-        .select("*");
+      if (cuadsResult.error) throw cuadsResult.error;
 
-      // Combinar datos
-      const cuadrillasCompletas = (cuads || []).map(c => ({
-        ...c,
-        supervisor: sups?.find(s => s.id === c.supervisorId),
-        integrantes: (integrantes || []).filter(i => i.cuadrillaId === c.id)
+      setSupervisores(sups);
+
+      // Combinar datos - mapear nombres de columna de BD a interfaz
+      const cuadrillasCompletas = cuads.map(c => ({
+        id: c.id,
+        nombre: c.nombre,
+        supervisorId: c.supervisorid,
+        supervisor: sups.find(s => s.id === c.supervisorid),
+        integrantes: integrantes.filter(i => i.cuadrillaid === c.id).map(i => ({
+          id: i.id,
+          nombre: i.nombre,
+          rut: i.rut,
+          cargo: i.cargo,
+          telefono: i.telefono
+        }))
       }));
 
       setCuadrillas(cuadrillasCompletas);
@@ -129,21 +145,21 @@ export default function CuadrillasPage() {
     try {
       if (editando) {
         const { error } = await supabase
-          .from("Cuadrilla")
+          .from("cuadrilla")
           .update({
             nombre: formData.nombre,
-            supervisorId: formData.supervisorId,
+            supervisorid: formData.supervisorId,
           })
           .eq("id", editando);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("Cuadrilla")
+          .from("cuadrilla")
           .insert({
             id: crypto.randomUUID(),
             nombre: formData.nombre,
-            supervisorId: formData.supervisorId,
+            supervisorid: formData.supervisorId,
           });
 
         if (error) throw error;
@@ -164,7 +180,7 @@ export default function CuadrillasPage() {
 
     try {
       const { error } = await supabase
-        .from("Cuadrilla")
+        .from("cuadrilla")
         .delete()
         .eq("id", id);
 
@@ -184,10 +200,10 @@ export default function CuadrillasPage() {
 
     try {
       const { error } = await supabase
-        .from("IntegranteCuadrilla")
+        .from("integrantecuadrilla")
         .insert({
           id: crypto.randomUUID(),
-          cuadrillaId,
+          cuadrillaid: cuadrillaId,
           nombre: integranteData.nombre,
           rut: integranteData.rut,
           cargo: integranteData.cargo,
@@ -210,7 +226,7 @@ export default function CuadrillasPage() {
 
     try {
       const { error } = await supabase
-        .from("IntegranteCuadrilla")
+        .from("integrantecuadrilla")
         .delete()
         .eq("id", id);
 

@@ -116,19 +116,16 @@ export function Header() {
             className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition flex-shrink-0"
             onClick={() => router.push("/")}
           >
-            <div className="bg-blue-600 p-2 rounded-lg">
-              <Image
-                src="/logo.png"
-                alt="Northtek Logo"
-                width={100}
-                height={40}
-                priority
-                className="object-contain"
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Northtek Logo"
+              width={100}
+              height={40}
+              priority
+              className="object-contain"
+            />
             <div className="border-l border-gray-200 pl-3 hidden sm:block">
-              <h1 className="text-lg font-bold text-gray-900">Northtek</h1>
-              <p className="text-xs text-gray-500">Sistema de Reportes</p>
+              <h1 className="text-sm font-semibold text-gray-900">Sistema de Reportabilidad</h1>
             </div>
           </div>
 

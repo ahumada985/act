@@ -59,8 +59,24 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refrescar sesión si está cerca de expirar
-  await supabase.auth.getUser();
+  // Obtener usuario actual
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Rutas públicas que no requieren autenticación
+  const publicRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/auth/callback', '/offline'];
+  const isPublicRoute = publicRoutes.some(route => request.nextUrl.pathname.startsWith(route));
+
+  // Si no hay usuario y no es ruta pública, redirigir a login
+  if (!user && !isPublicRoute) {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // Si hay usuario y está en login/register, redirigir a inicio
+  if (user && (request.nextUrl.pathname === '/login' || request.nextUrl.pathname === '/register')) {
+    const homeUrl = new URL('/', request.url);
+    return NextResponse.redirect(homeUrl);
+  }
 
   return response;
 }

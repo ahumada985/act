@@ -88,20 +88,18 @@ export default function LoginPage() {
         <CardHeader className="space-y-4">
           {/* Logo Northtek */}
           <div className="flex justify-center">
-            <div className="bg-blue-600 p-4 rounded-xl">
-              <Image
-                src="/logo.png"
-                alt="Northtek Logo"
-                width={150}
-                height={60}
-                priority
-                className="object-contain"
-              />
-            </div>
+            <Image
+              src="/logo.png"
+              alt="Northtek Logo"
+              width={150}
+              height={60}
+              priority
+              className="object-contain"
+            />
           </div>
           <div className="space-y-1">
             <CardTitle className="text-2xl font-bold text-center">
-              Northtek Reportes
+              Sistema de Reportabilidad
             </CardTitle>
             <CardDescription className="text-center">
               Inicia sesión para acceder al sistema

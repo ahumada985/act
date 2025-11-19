@@ -67,27 +67,29 @@ export default function GanttPage() {
     try {
       // Obtener tareas Gantt
       const { data: tareasData, error } = await supabase
-        .from("TareaGantt")
+        .from("tareagantt")
         .select("*")
         .order("orden");
 
       if (error) throw error;
-      setTareas(tareasData || []);
 
-      // Obtener proyectos únicos de reportes
-      const { data: reportes } = await supabase
-        .from("Reporte")
-        .select("proyecto")
-        .not("proyecto", "is", null);
+      // Mapear nombres de columnas de BD (minúsculas) a interfaz (camelCase)
+      const tareasMapeadas = (tareasData || []).map(t => ({
+        id: t.id,
+        proyectoNombre: t.proyectonombre,
+        nombre: t.nombre,
+        fechaInicio: t.fechainicio,
+        fechaFin: t.fechafin,
+        completada: t.completada,
+        orden: t.orden
+      }));
+      setTareas(tareasMapeadas);
 
-      const reporteProyectos = [...new Set((reportes || []).map(r => r.proyecto).filter(Boolean))];
+      // Usar solo faenas mineras predefinidas
+      setProyectos(FAENAS_MINERAS);
 
-      // Combinar con faenas predefinidas
-      const allProyectos = [...new Set([...FAENAS_MINERAS, ...reporteProyectos])];
-      setProyectos(allProyectos);
-
-      if (allProyectos.length > 0 && !proyectoSeleccionado) {
-        setProyectoSeleccionado(allProyectos[0]);
+      if (FAENAS_MINERAS.length > 0 && !proyectoSeleccionado) {
+        setProyectoSeleccionado(FAENAS_MINERAS[0]);
       }
     } catch (error: any) {
       console.error("Error:", error);
@@ -114,24 +116,24 @@ export default function GanttPage() {
         : 0;
 
       const datos = {
-        proyectoNombre: formData.proyectoNombre,
+        proyectonombre: formData.proyectoNombre,
         nombre: formData.nombre,
-        fechaInicio: formData.fechaInicio,
-        fechaFin: formData.fechaFin,
+        fechainicio: formData.fechaInicio,
+        fechafin: formData.fechaFin,
         completada: false,
         orden: editando ? tareas.find(t => t.id === editando)?.orden || maxOrden + 1 : maxOrden + 1,
       };
 
       if (editando) {
         const { error } = await supabase
-          .from("TareaGantt")
+          .from("tareagantt")
           .update(datos)
           .eq("id", editando);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("TareaGantt")
+          .from("tareagantt")
           .insert({
             id: crypto.randomUUID(),
             ...datos
@@ -153,7 +155,7 @@ export default function GanttPage() {
 
     try {
       const { error } = await supabase
-        .from("TareaGantt")
+        .from("tareagantt")
         .delete()
         .eq("id", id);
 
@@ -167,7 +169,7 @@ export default function GanttPage() {
   async function toggleCompletada(tarea: TareaGantt) {
     try {
       const { error } = await supabase
-        .from("TareaGantt")
+        .from("tareagantt")
         .update({ completada: !tarea.completada })
         .eq("id", tarea.id);
 

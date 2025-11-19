@@ -80,13 +80,23 @@ export default function PrevencionPage() {
     try {
       // Obtener registros de prevención
       const { data: prevData, error } = await supabase
-        .from("PrevencionRiesgo")
+        .from("prevencionriesgo")
         .select("*")
         .order("fecha", { ascending: false });
 
       if (error) throw error;
 
-      setRegistros(prevData || []);
+      // Mapear nombres de columnas de BD a interfaz
+      const registrosMapeados = (prevData || []).map(r => ({
+        id: r.id,
+        proyectoNombre: r.proyectonombre,
+        actividad: r.actividad,
+        personasInvolucradas: r.personasinvolucradas,
+        documentos: r.documentos || [],
+        fecha: r.fecha,
+        estado: r.estado
+      }));
+      setRegistros(registrosMapeados);
 
       // Obtener proyectos únicos de reportes
       const { data: reportes } = await supabase
@@ -111,23 +121,23 @@ export default function PrevencionPage() {
 
     try {
       const datos = {
-        proyectoNombre: formData.proyectoNombre,
+        proyectonombre: formData.proyectoNombre,
         actividad: formData.actividad,
-        personasInvolucradas: formData.personasInvolucradas,
+        personasinvolucradas: formData.personasInvolucradas,
         documentos: documentos,
         fecha: formData.fecha,
       };
 
       if (editando) {
         const { error } = await supabase
-          .from("PrevencionRiesgo")
+          .from("prevencionriesgo")
           .update(datos)
           .eq("id", editando);
 
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from("PrevencionRiesgo")
+          .from("prevencionriesgo")
           .insert({
             id: crypto.randomUUID(),
             ...datos
@@ -149,7 +159,7 @@ export default function PrevencionPage() {
 
     try {
       const { error } = await supabase
-        .from("PrevencionRiesgo")
+        .from("prevencionriesgo")
         .delete()
         .eq("id", id);
 
@@ -376,8 +386,8 @@ export default function PrevencionPage() {
         {/* Modal Detalle */}
         {verDetalle && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <Card className="w-full max-w-lg border-0 shadow-xl">
-              <CardContent className="p-6">
+            <Card className="w-full max-w-lg border-0 shadow-xl bg-white">
+              <CardContent className="p-6 bg-white rounded-lg">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-gray-900">Detalle del Registro</h3>
                   <button onClick={() => setVerDetalle(null)}>
