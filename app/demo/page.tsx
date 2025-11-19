@@ -77,7 +77,7 @@ export default function DemoPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-3xl text-blue-600">
-              ACT Reportes - Conexión Exitosa ✅
+              Northtek Reportes - Conexión Exitosa
             </CardTitle>
             <CardDescription>
               Base de datos Supabase conectada correctamente

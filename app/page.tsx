@@ -8,11 +8,11 @@ import {
   BarChart3,
   Briefcase,
   Map,
-  Image as ImageIcon,
   Clock,
-  TrendingUp,
   Plus,
-  Layers
+  Users,
+  Shield,
+  GanttChart
 } from "lucide-react";
 import Image from "next/image";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
@@ -25,66 +25,51 @@ export default function Home() {
     {
       icon: FileText,
       title: "Reportes",
-      description: "Ver y gestionar todos los reportes",
+      description: "Ver y gestionar reportes",
       href: "/reportes",
       color: "blue"
-    },
-    {
-      icon: Plus,
-      title: "Nuevo Reporte",
-      description: "Crear reporte en terreno",
-      href: "/reportes/nuevo",
-      color: "green",
-      primary: true
     },
     {
       icon: BarChart3,
       title: "Dashboard",
       description: "Métricas y estadísticas",
       href: "/dashboard",
-      color: "emerald"
+      color: "blue"
     },
     {
       icon: Briefcase,
       title: "Proyectos",
-      description: "Organizar por proyecto",
+      description: "Faenas y proyectos",
       href: "/proyectos",
-      color: "purple"
+      color: "blue"
     },
     {
       icon: Map,
       title: "Mapa",
       description: "Ubicaciones GPS",
       href: "/mapa",
-      color: "amber"
+      color: "blue"
     },
     {
-      icon: ImageIcon,
-      title: "Galería",
-      description: "Evidencia fotográfica",
-      href: "/galeria",
-      color: "pink"
+      icon: GanttChart,
+      title: "Carta Gantt",
+      description: "Planificación tareas",
+      href: "/gantt",
+      color: "blue"
     },
     {
-      icon: Clock,
-      title: "Timeline",
-      description: "Cronología de eventos",
-      href: "/proyectos/timeline",
-      color: "indigo"
+      icon: Users,
+      title: "Cuadrillas",
+      description: "Equipos de trabajo",
+      href: "/cuadrillas",
+      color: "blue"
     },
     {
-      icon: Layers,
-      title: "Fases",
-      description: "Etapas de trabajo",
-      href: "/proyectos/fases",
-      color: "cyan"
-    },
-    {
-      icon: TrendingUp,
-      title: "Avance",
-      description: "Progreso de proyectos",
-      href: "/proyectos/avance",
-      color: "teal"
+      icon: Shield,
+      title: "Prevención",
+      description: "Seguridad y riesgos",
+      href: "/prevencion",
+      color: "blue"
     }
   ];
 
@@ -108,7 +93,9 @@ export default function Home() {
       pink: { bg: "bg-pink-50", hover: "hover:bg-pink-100", icon: "bg-pink-100", iconColor: "text-pink-600" },
       indigo: { bg: "bg-indigo-50", hover: "hover:bg-indigo-100", icon: "bg-indigo-100", iconColor: "text-indigo-600" },
       cyan: { bg: "bg-cyan-50", hover: "hover:bg-cyan-100", icon: "bg-cyan-100", iconColor: "text-cyan-600" },
-      teal: { bg: "bg-teal-50", hover: "hover:bg-teal-100", icon: "bg-teal-100", iconColor: "text-teal-600" }
+      teal: { bg: "bg-teal-50", hover: "hover:bg-teal-100", icon: "bg-teal-100", iconColor: "text-teal-600" },
+      orange: { bg: "bg-orange-50", hover: "hover:bg-orange-100", icon: "bg-orange-100", iconColor: "text-orange-600" },
+      red: { bg: "bg-red-50", hover: "hover:bg-red-100", icon: "bg-red-100", iconColor: "text-red-600" }
     };
 
     const c = colors[color] || colors.blue;
@@ -122,9 +109,8 @@ export default function Home() {
   };
 
   return (
-    <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
-        <Header />
+    <div className="min-h-screen bg-gray-50">
+      <Header />
 
         {/* Contenido principal */}
         <div className="max-w-5xl mx-auto px-4 py-8">
@@ -167,11 +153,10 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Footer mínimo */}
-        <div className="mt-auto py-6 text-center text-sm text-gray-400">
-          © 2025 Northtek
-        </div>
+      {/* Footer mínimo */}
+      <div className="mt-auto py-6 text-center text-sm text-gray-400">
+        © 2025 Northtek
       </div>
-    </ProtectedRoute>
+    </div>
   );
 }

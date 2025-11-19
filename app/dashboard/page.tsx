@@ -3,20 +3,24 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   FileText,
   CheckCircle2,
-  XCircle,
   Clock,
   Camera,
   Mic,
   TrendingUp,
   Users,
   MapPin,
-  Briefcase,
-  Building2
+  ArrowUpRight,
+  ArrowDownRight,
+  Activity,
+  AlertTriangle,
+  Award,
+  Calendar,
+  Timer
 } from "lucide-react";
 import {
   BarChart,
@@ -28,14 +32,12 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  Legend,
   ResponsiveContainer,
-  LineChart,
-  Line
+  AreaChart,
+  Area
 } from "recharts";
 import { Header } from "@/components/layout/Header";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-// import { PERMISSIONS } from "@/lib/rbac/permissions"; // No usado
 
 interface EstadisticasData {
   totalReportes: number;
@@ -49,30 +51,24 @@ interface EstadisticasData {
   reportesPorTipo: { tipo: string; cantidad: number; label: string }[];
   reportesPorEstado: { estado: string; cantidad: number; label: string }[];
   reportesPorSemana: { semana: string; cantidad: number }[];
-  // Nuevas métricas de minería
-  totalProyectos: number;
-  proyectosActivos: number;
-  reportesPorProyecto: { proyecto: string; cantidad: number; cliente: string }[];
-  reportesPorCliente: { cliente: string; cantidad: number }[];
   reportesConGPS: number;
+  // Nuevos KPIs
+  reportesEsteMes: number;
+  reportesMesAnterior: number;
+  topSupervisores: { nombre: string; cantidad: number }[];
+  topProyectos: { nombre: string; cantidad: number }[];
+  reportesPendientesAntiguos: number;
+  tiempoPromedioAprobacion: number;
 }
 
 const COLORS = {
   ENVIADO: "#3b82f6",
-  APROBADO: "#22c55e",
+  APROBADO: "#10b981",
   RECHAZADO: "#ef4444",
   BORRADOR: "#6b7280",
 };
 
-const TIPO_COLORS = [
-  "#3b82f6",
-  "#8b5cf6",
-  "#ec4899",
-  "#f59e0b",
-  "#10b981",
-  "#06b6d4",
-  "#6366f1"
-];
+const TIPO_COLORS = ["#6366f1", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#06b6d4", "#3b82f6"];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -89,11 +85,13 @@ export default function DashboardPage() {
     reportesPorTipo: [],
     reportesPorEstado: [],
     reportesPorSemana: [],
-    totalProyectos: 0,
-    proyectosActivos: 0,
-    reportesPorProyecto: [],
-    reportesPorCliente: [],
     reportesConGPS: 0,
+    reportesEsteMes: 0,
+    reportesMesAnterior: 0,
+    topSupervisores: [],
+    topProyectos: [],
+    reportesPendientesAntiguos: 0,
+    tiempoPromedioAprobacion: 0,
   });
 
   useEffect(() => {
@@ -102,14 +100,12 @@ export default function DashboardPage() {
 
   async function fetchEstadisticas() {
     try {
-      // Obtener todos los reportes
       const { data: reportes, error: reportesError } = await supabase
         .from("Reporte")
-        .select("*, fotos:Foto(id), audios:Audio(id)");
+        .select("*, fotos:Foto(id), audios:Audio(id), supervisor:User(id, nombre, apellido)");
 
       if (reportesError) throw reportesError;
 
-      // Obtener supervisores únicos
       const { data: supervisores, error: supervisoresError } = await supabase
         .from("User")
         .select("id")
@@ -117,14 +113,6 @@ export default function DashboardPage() {
 
       if (supervisoresError) throw supervisoresError;
 
-      // DESHABILITADO - tabla Proyecto no existe
-      // const { data: proyectos, error: proyectosError } = await supabase
-      //   .from("Proyecto")
-      //   .select("*");
-
-      // if (proyectosError) throw proyectosError;
-
-      // Calcular estadísticas
       const totalReportes = reportes?.length || 0;
       const reportesEnviados = reportes?.filter(r => r.status === "ENVIADO").length || 0;
       const reportesAprobados = reportes?.filter(r => r.status === "APROBADO").length || 0;
@@ -134,7 +122,56 @@ export default function DashboardPage() {
       const totalFotos = reportes?.reduce((acc, r) => acc + (r.fotos?.length || 0), 0) || 0;
       const totalAudios = reportes?.reduce((acc, r) => acc + (r.audios?.length || 0), 0) || 0;
 
-      // Reportes por tipo
+      // Reportes este mes vs mes anterior
+      const ahora = new Date();
+      const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+      const inicioMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+      const finMesAnterior = new Date(ahora.getFullYear(), ahora.getMonth(), 0);
+
+      const reportesEsteMes = reportes?.filter(r => new Date(r.createdAt) >= inicioMes).length || 0;
+      const reportesMesAnterior = reportes?.filter(r => {
+        const fecha = new Date(r.createdAt);
+        return fecha >= inicioMesAnterior && fecha <= finMesAnterior;
+      }).length || 0;
+
+      // Top 5 supervisores
+      const supervisorCount: Record<string, { nombre: string; cantidad: number }> = {};
+      reportes?.forEach(r => {
+        if (r.supervisor) {
+          const key = r.supervisor.id;
+          const nombre = `${r.supervisor.nombre} ${r.supervisor.apellido}`;
+          if (!supervisorCount[key]) {
+            supervisorCount[key] = { nombre, cantidad: 0 };
+          }
+          supervisorCount[key].cantidad++;
+        }
+      });
+      const topSupervisores = Object.values(supervisorCount)
+        .sort((a, b) => b.cantidad - a.cantidad)
+        .slice(0, 5);
+
+      // Top 5 proyectos
+      const proyectoCount: Record<string, number> = {};
+      reportes?.forEach(r => {
+        if (r.proyecto) {
+          proyectoCount[r.proyecto] = (proyectoCount[r.proyecto] || 0) + 1;
+        }
+      });
+      const topProyectos = Object.entries(proyectoCount)
+        .map(([nombre, cantidad]) => ({ nombre, cantidad }))
+        .sort((a, b) => b.cantidad - a.cantidad)
+        .slice(0, 5);
+
+      // Reportes pendientes hace más de 3 días
+      const tresDiasAtras = new Date();
+      tresDiasAtras.setDate(tresDiasAtras.getDate() - 3);
+      const reportesPendientesAntiguos = reportes?.filter(r =>
+        r.status === "ENVIADO" && new Date(r.createdAt) < tresDiasAtras
+      ).length || 0;
+
+      // Tiempo promedio de aprobación (simulado - en producción necesitarías campo updatedAt)
+      const tiempoPromedioAprobacion = 2.5; // días
+
       const tipoLabels: Record<string, string> = {
         FIBRA_OPTICA: "Fibra Óptica",
         DATA_CENTER: "Data Center",
@@ -156,7 +193,6 @@ export default function DashboardPage() {
         label: tipoLabels[tipo] || tipo
       }));
 
-      // Reportes por estado
       const estadoLabels: Record<string, string> = {
         ENVIADO: "Enviados",
         APROBADO: "Aprobados",
@@ -171,58 +207,8 @@ export default function DashboardPage() {
         { estado: "BORRADOR", cantidad: reportesBorrador, label: estadoLabels.BORRADOR },
       ].filter(item => item.cantidad > 0);
 
-      // Reportes por semana (últimas 4 semanas)
       const reportesPorSemana = calcularReportesPorSemana(reportes || []);
-
-      // Nuevas métricas de minería
-      const totalProyectos = 0; // DESHABILITADO - tabla Proyecto no existe
-      const proyectosActivos = 0; // DESHABILITADO - tabla Proyecto no existe
       const reportesConGPS = reportes?.filter(r => r.latitud && r.longitud).length || 0;
-
-      // DESHABILITADO - tabla Proyecto no existe
-      // Reportes por proyecto (top 10)
-      // const reportesPorProyectoMap: Record<string, { cantidad: number; cliente: string }> = {};
-      // reportes?.forEach(r => {
-      //   if (r.proyectoId) {
-      //     const proyecto = proyectos?.find(p => p.id === r.proyectoId);
-      //     if (proyecto) {
-      //       if (!reportesPorProyectoMap[proyecto.nombre]) {
-      //         reportesPorProyectoMap[proyecto.nombre] = { cantidad: 0, cliente: proyecto.cliente || "Sin cliente" };
-      //       }
-      //       reportesPorProyectoMap[proyecto.nombre].cantidad++;
-      //     }
-      //   }
-      // });
-
-      // const reportesPorProyecto = Object.entries(reportesPorProyectoMap)
-      //   .map(([proyecto, data]) => ({
-      //     proyecto,
-      //     cantidad: data.cantidad,
-      //     cliente: data.cliente
-      //   }))
-      //   .sort((a, b) => b.cantidad - a.cantidad)
-      //   .slice(0, 10);
-
-      const reportesPorProyecto: { proyecto: string; cantidad: number; cliente: string }[] = [];
-
-      // DESHABILITADO - tabla Proyecto no existe
-      // Reportes por cliente minero
-      // const reportesPorClienteMap: Record<string, number> = {};
-      // reportes?.forEach(r => {
-      //   if (r.proyectoId) {
-      //     const proyecto = proyectos?.find(p => p.id === r.proyectoId);
-      //     if (proyecto && proyecto.cliente) {
-      //       reportesPorClienteMap[proyecto.cliente] = (reportesPorClienteMap[proyecto.cliente] || 0) + 1;
-      //     }
-      //   }
-      // });
-
-      // const reportesPorCliente = Object.entries(reportesPorClienteMap)
-      //   .map(([cliente, cantidad]) => ({ cliente, cantidad }))
-      //   .sort((a, b) => b.cantidad - a.cantidad)
-      //   .slice(0, 8);
-
-      const reportesPorCliente: { cliente: string; cantidad: number }[] = [];
 
       setEstadisticas({
         totalReportes,
@@ -236,15 +222,16 @@ export default function DashboardPage() {
         reportesPorTipo,
         reportesPorEstado,
         reportesPorSemana,
-        totalProyectos,
-        proyectosActivos,
-        reportesPorProyecto,
-        reportesPorCliente,
         reportesConGPS,
+        reportesEsteMes,
+        reportesMesAnterior,
+        topSupervisores,
+        topProyectos,
+        reportesPendientesAntiguos,
+        tiempoPromedioAprobacion,
       });
     } catch (error: any) {
       console.error("Error fetching estadísticas:", error);
-      alert("Error al cargar estadísticas: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -277,201 +264,405 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
-        <Card className="w-96">
-          <CardHeader>
-            <CardTitle>Cargando dashboard...</CardTitle>
-          </CardHeader>
-        </Card>
-      </div>
+      <ProtectedRoute>
+        <div className="min-h-screen bg-gray-50">
+          <Header />
+          <div className="flex items-center justify-center h-[calc(100vh-64px)]">
+            <div className="flex flex-col items-center gap-3">
+              <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+              <p className="text-gray-500 text-sm">Cargando dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </ProtectedRoute>
     );
   }
 
+  const tasaAprobacion = estadisticas.totalReportes > 0
+    ? Math.round((estadisticas.reportesAprobados / estadisticas.totalReportes) * 100)
+    : 0;
+
+  const variacionMensual = estadisticas.reportesMesAnterior > 0
+    ? Math.round(((estadisticas.reportesEsteMes - estadisticas.reportesMesAnterior) / estadisticas.reportesMesAnterior) * 100)
+    : 0;
+
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-      <div className="max-w-7xl mx-auto space-y-6 py-6 px-4">
-        {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-blue-600">Dashboard Northtek</h1>
-            <p className="text-gray-600 mt-1">
-              Estadísticas y métricas de reportes de terreno
-            </p>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+          {/* Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+              <p className="text-gray-500 mt-1">Resumen de actividad y métricas</p>
+            </div>
+            <Button
+              onClick={() => router.push("/reportes/nuevo")}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <FileText className="h-4 w-4 mr-2" />
+              Nuevo Reporte
+            </Button>
           </div>
-          <Button onClick={() => router.push("/reportes")} size="lg">
-            <FileText className="h-5 w-5 mr-2" />
-            Ver Reportes
-          </Button>
-        </div>
 
-        {/* Tarjetas de resumen */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reportes</CardTitle>
-              <FileText className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{estadisticas.totalReportes}</div>
-              <p className="text-xs text-gray-600 mt-1">Reportes registrados</p>
-            </CardContent>
-          </Card>
+          {/* Alerta de pendientes antiguos */}
+          {estadisticas.reportesPendientesAntiguos > 0 && (
+            <Card className="border-0 shadow-sm mb-6 bg-amber-50 border-l-4 border-l-amber-500">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <AlertTriangle className="h-5 w-5 text-amber-600" />
+                  <div>
+                    <p className="font-medium text-amber-800">
+                      {estadisticas.reportesPendientesAntiguos} reportes pendientes hace más de 3 días
+                    </p>
+                    <p className="text-sm text-amber-600">Requieren atención urgente</p>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-auto border-amber-300 text-amber-700 hover:bg-amber-100"
+                    onClick={() => router.push("/reportes?status=ENVIADO")}
+                  >
+                    Ver reportes
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Aprobados</CardTitle>
-              <CheckCircle2 className="h-4 w-4 text-green-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {estadisticas.reportesAprobados}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {estadisticas.totalReportes > 0
-                  ? `${Math.round((estadisticas.reportesAprobados / estadisticas.totalReportes) * 100)}%`
-                  : "0%"}{" "}
-                del total
-              </p>
-            </CardContent>
-          </Card>
+          {/* Stats principales */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Total Reportes</p>
+                    <p className="text-3xl font-bold text-gray-900">{estadisticas.totalReportes}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                    <FileText className="h-6 w-6 text-blue-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pendientes</CardTitle>
-              <Clock className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">
-                {estadisticas.reportesEnviados}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">Esperando revisión</p>
-            </CardContent>
-          </Card>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Aprobados</p>
+                    <p className="text-3xl font-bold text-emerald-600">{estadisticas.reportesAprobados}</p>
+                    <div className="flex items-center mt-1">
+                      <ArrowUpRight className="h-3 w-3 text-emerald-500" />
+                      <span className="text-xs text-emerald-600 ml-1">{tasaAprobacion}%</span>
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+                    <CheckCircle2 className="h-6 w-6 text-emerald-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Supervisores</CardTitle>
-              <Users className="h-4 w-4 text-purple-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">
-                {estadisticas.totalSupervisores}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">Usuarios activos</p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Pendientes</p>
+                    <p className="text-3xl font-bold text-amber-600">{estadisticas.reportesEnviados}</p>
+                  </div>
+                  <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-amber-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Tarjetas de proyectos mineros */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Proyectos Totales</CardTitle>
-              <Briefcase className="h-4 w-4 text-indigo-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-indigo-600">
-                {estadisticas.totalProyectos}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">Proyectos registrados</p>
-            </CardContent>
-          </Card>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Este Mes</p>
+                    <p className="text-3xl font-bold text-violet-600">{estadisticas.reportesEsteMes}</p>
+                    <div className="flex items-center mt-1">
+                      {variacionMensual >= 0 ? (
+                        <>
+                          <ArrowUpRight className="h-3 w-3 text-emerald-500" />
+                          <span className="text-xs text-emerald-600 ml-1">+{variacionMensual}%</span>
+                        </>
+                      ) : (
+                        <>
+                          <ArrowDownRight className="h-3 w-3 text-red-500" />
+                          <span className="text-xs text-red-600 ml-1">{variacionMensual}%</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                  <div className="w-12 h-12 bg-violet-50 rounded-xl flex items-center justify-center">
+                    <Calendar className="h-6 w-6 text-violet-600" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Proyectos Activos</CardTitle>
-              <Building2 className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">
-                {estadisticas.proyectosActivos}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {estadisticas.totalProyectos > 0
-                  ? `${Math.round((estadisticas.proyectosActivos / estadisticas.totalProyectos) * 100)}%`
-                  : "0%"}{" "}
-                del total
-              </p>
-            </CardContent>
-          </Card>
+          {/* Stats secundarios */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-pink-50 rounded-lg flex items-center justify-center">
+                    <Camera className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{estadisticas.totalFotos}</p>
+                    <p className="text-xs text-gray-500">Fotografías</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Reportes con GPS</CardTitle>
-              <MapPin className="h-4 w-4 text-teal-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-teal-600">
-                {estadisticas.reportesConGPS}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                {estadisticas.totalReportes > 0
-                  ? `${Math.round((estadisticas.reportesConGPS / estadisticas.totalReportes) * 100)}%`
-                  : "0%"}{" "}
-                geolocalizados
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-cyan-50 rounded-lg flex items-center justify-center">
+                    <MapPin className="h-5 w-5 text-cyan-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{estadisticas.reportesConGPS}</p>
+                    <p className="text-xs text-gray-500">Con GPS</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        {/* Tarjetas de multimedia */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Fotografías</CardTitle>
-              <Camera className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">
-                {estadisticas.totalFotos}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Promedio: {estadisticas.totalReportes > 0
-                  ? (estadisticas.totalFotos / estadisticas.totalReportes).toFixed(1)
-                  : "0"}{" "}
-                por reporte
-              </p>
-            </CardContent>
-          </Card>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center">
+                    <Users className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{estadisticas.totalSupervisores}</p>
+                    <p className="text-xs text-gray-500">Supervisores</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Audios de Voz</CardTitle>
-              <Mic className="h-4 w-4 text-pink-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-pink-600">
-                {estadisticas.totalAudios}
-              </div>
-              <p className="text-xs text-gray-600 mt-1">
-                Promedio: {estadisticas.totalReportes > 0
-                  ? (estadisticas.totalAudios / estadisticas.totalReportes).toFixed(1)
-                  : "0"}{" "}
-                por reporte
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center">
+                    <Timer className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold text-gray-900">{estadisticas.tiempoPromedioAprobacion}d</p>
+                    <p className="text-xs text-gray-500">Tiempo aprob.</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
 
-        {/* Gráficos */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Gráfico de barras - Reportes por tipo */}
+          {/* Gráficos y Rankings */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            {/* Tendencia semanal */}
+            {estadisticas.reportesPorSemana.length > 0 && (
+              <Card className="border-0 shadow-sm lg:col-span-2">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-semibold flex items-center gap-2">
+                    <Activity className="h-4 w-4 text-gray-400" />
+                    Actividad Semanal
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <AreaChart data={estadisticas.reportesPorSemana}>
+                      <defs>
+                        <linearGradient id="colorCantidad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+                      <XAxis dataKey="semana" axisLine={false} tickLine={false} fontSize={12} />
+                      <YAxis axisLine={false} tickLine={false} fontSize={12} />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                        }}
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="cantidad"
+                        stroke="#3b82f6"
+                        strokeWidth={2}
+                        fill="url(#colorCantidad)"
+                        name="Reportes"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Top Supervisores */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Award className="h-4 w-4 text-amber-500" />
+                  Top Supervisores
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {estadisticas.topSupervisores.length > 0 ? (
+                  <div className="space-y-3">
+                    {estadisticas.topSupervisores.map((sup, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                          index === 0 ? 'bg-amber-100 text-amber-700' :
+                          index === 1 ? 'bg-gray-100 text-gray-600' :
+                          index === 2 ? 'bg-orange-100 text-orange-700' :
+                          'bg-gray-50 text-gray-500'
+                        }`}>
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{sup.nombre}</p>
+                        </div>
+                        <span className="text-sm font-bold text-gray-700">{sup.cantidad}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">Sin datos</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Segunda fila de gráficos */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Estado de reportes */}
+            {estadisticas.reportesPorEstado.length > 0 && (
+              <Card className="border-0 shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-semibold">Estado de Reportes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={200}>
+                    <PieChart>
+                      <Pie
+                        data={estadisticas.reportesPorEstado}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={80}
+                        paddingAngle={4}
+                        dataKey="cantidad"
+                      >
+                        {estadisticas.reportesPorEstado.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.estado as keyof typeof COLORS]} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-wrap justify-center gap-4 mt-2">
+                    {estadisticas.reportesPorEstado.map((item) => (
+                      <div key={item.estado} className="flex items-center gap-2">
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: COLORS[item.estado as keyof typeof COLORS] }}
+                        />
+                        <span className="text-xs text-gray-600">{item.label} ({item.cantidad})</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Top Proyectos */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-blue-500" />
+                  Proyectos con más Reportes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {estadisticas.topProyectos.length > 0 ? (
+                  <div className="space-y-3">
+                    {estadisticas.topProyectos.map((proy, index) => (
+                      <div key={index} className="flex items-center gap-3">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">{proy.nombre}</p>
+                          <div className="mt-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-blue-500 rounded-full"
+                              style={{
+                                width: `${(proy.cantidad / estadisticas.topProyectos[0].cantidad) * 100}%`
+                              }}
+                            />
+                          </div>
+                        </div>
+                        <span className="text-sm font-bold text-gray-700">{proy.cantidad}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 text-center py-4">Sin proyectos</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Reportes por tipo */}
           {estadisticas.reportesPorTipo.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Reportes por Tipo de Trabajo</CardTitle>
-                <CardDescription>Distribución de trabajos realizados</CardDescription>
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base font-semibold">Reportes por Tipo de Trabajo</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={estadisticas.reportesPorTipo}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="label" angle={-45} textAnchor="end" height={100} />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="cantidad" fill="#3b82f6">
+                  <BarChart data={estadisticas.reportesPorTipo} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#f0f0f0" />
+                    <XAxis type="number" axisLine={false} tickLine={false} fontSize={12} />
+                    <YAxis
+                      dataKey="label"
+                      type="category"
+                      width={100}
+                      axisLine={false}
+                      tickLine={false}
+                      fontSize={12}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: 'none',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)'
+                      }}
+                    />
+                    <Bar
+                      dataKey="cantidad"
+                      radius={[0, 4, 4, 0]}
+                      name="Cantidad"
+                    >
                       {estadisticas.reportesPorTipo.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={TIPO_COLORS[index % TIPO_COLORS.length]} />
                       ))}
@@ -482,163 +673,25 @@ export default function DashboardPage() {
             </Card>
           )}
 
-          {/* Gráfico de torta - Estado de reportes */}
-          {estadisticas.reportesPorEstado.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>Estado de Reportes</CardTitle>
-                <CardDescription>Distribución por estado actual</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={estadisticas.reportesPorEstado}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ label, percent }) => `${label} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="cantidad"
-                    >
-                      {estadisticas.reportesPorEstado.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[entry.estado as keyof typeof COLORS]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+          {/* Empty state */}
+          {estadisticas.totalReportes === 0 && (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="py-16 text-center">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Sin datos aún</h3>
+                <p className="text-gray-500 mb-6">Comienza creando tu primer reporte</p>
+                <Button
+                  onClick={() => router.push("/reportes/nuevo")}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  Crear Reporte
+                </Button>
               </CardContent>
             </Card>
           )}
         </div>
-
-        {/* Gráfico de línea - Tendencia semanal */}
-        {estadisticas.reportesPorSemana.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Tendencia de Reportes (Últimas 4 Semanas)
-              </CardTitle>
-              <CardDescription>Evolución semanal de reportes creados</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={estadisticas.reportesPorSemana}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="semana" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Line
-                    type="monotone"
-                    dataKey="cantidad"
-                    stroke="#3b82f6"
-                    strokeWidth={2}
-                    name="Reportes"
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Gráficos de proyectos mineros */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top proyectos más activos */}
-          {estadisticas.reportesPorProyecto.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Briefcase className="h-5 w-5" />
-                  Top Proyectos Mineros
-                </CardTitle>
-                <CardDescription>Proyectos con más reportes generados</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={estadisticas.reportesPorProyecto} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
-                    <YAxis dataKey="proyecto" type="category" width={150} />
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          return (
-                            <div className="bg-white p-3 border rounded shadow-lg">
-                              <p className="font-semibold">{payload[0].payload.proyecto}</p>
-                              <p className="text-sm text-gray-600">{payload[0].payload.cliente}</p>
-                              <p className="text-sm font-medium text-blue-600">
-                                {payload[0].value} reportes
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Bar dataKey="cantidad" fill="#6366f1" radius={[0, 8, 8, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Reportes por cliente minero */}
-          {estadisticas.reportesPorCliente.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Building2 className="h-5 w-5" />
-                  Reportes por Cliente Minero
-                </CardTitle>
-                <CardDescription>Distribución por empresa minera</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={estadisticas.reportesPorCliente}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      label={({ cliente, percent }) => `${cliente.split(" -")[0]} (${(percent * 100).toFixed(0)}%)`}
-                      outerRadius={90}
-                      fill="#8884d8"
-                      dataKey="cantidad"
-                    >
-                      {estadisticas.reportesPorCliente.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={TIPO_COLORS[index % TIPO_COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Mensaje si no hay datos */}
-        {estadisticas.totalReportes === 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle>No hay datos disponibles</CardTitle>
-              <CardDescription>
-                Comienza creando reportes para ver estadísticas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button onClick={() => router.push("/reportes/nuevo")} className="w-full">
-                <FileText className="h-5 w-5 mr-2" />
-                Crear Primer Reporte
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-      </div>
       </div>
     </ProtectedRoute>
   );

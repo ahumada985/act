@@ -6,7 +6,7 @@ export * from './reportes';
 export * from './proyectos';
 
 // Constantes comunes
-export const APP_NAME = "ACT Reportes";
+export const APP_NAME = "Northtek Reportes";
 export const APP_VERSION = "1.0.0";
 
 export const TOAST_DURATION = 3000;

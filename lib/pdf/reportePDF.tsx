@@ -117,7 +117,7 @@ export function ReportePDF({ reporte, supervisor, fotos }: ReportePDFProps) {
         {/* Header */}
         <View style={styles.header}>
           <Image src="/logo.png" style={styles.logo} />
-          <Text style={styles.title}>ACT REPORTES</Text>
+          <Text style={styles.title}>NORTHTEK REPORTES</Text>
           <Text style={styles.subtitle}>Reporte de Terreno - Telecomunicaciones</Text>
         </View>
 
@@ -238,7 +238,7 @@ export function ReportePDF({ reporte, supervisor, fotos }: ReportePDFProps) {
         {/* Footer */}
         <View style={styles.footer}>
           <Text>
-            Generado con ACT Reportes - {new Date().toLocaleDateString('es-CL')}
+            Generado con Northtek Reportes - {new Date().toLocaleDateString('es-CL')}
           </Text>
           <Text style={{ marginTop: 3 }}>
             Sistema de Reportabilidad para Telecomunicaciones
@@ -273,7 +273,7 @@ export function ReportePDF({ reporte, supervisor, fotos }: ReportePDFProps) {
 
           <View style={styles.footer}>
             <Text>
-              Generado con ACT Reportes - {new Date().toLocaleDateString('es-CL')}
+              Generado con Northtek Reportes - {new Date().toLocaleDateString('es-CL')}
             </Text>
           </View>
         </Page>

@@ -11,16 +11,14 @@ import { AudioCapture } from "@/components/forms/AudioCapture";
 import { VoiceInput } from "@/components/forms/VoiceInput";
 import { AnalisisIAPanel } from "@/components/ia/AnalisisIAPanel";
 import { AIDescriptionGenerator } from "@/components/ai/AIDescriptionGenerator";
-// OCRCapture removed - component disabled
 import { Header } from "@/components/layout/Header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Camera, MapPin, Save, Loader2, X, Mic, WifiOff, Wifi } from "lucide-react";
+import { Camera, MapPin, Save, Loader2, X, Mic, WifiOff, Wifi, CheckCircle2 } from "lucide-react";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
-import { PERMISSIONS } from "@/lib/rbac/permissions";
 import type { TipoTrabajo } from "@/lib/ia/prompts";
 import type { AnalisisIA } from "@/app/api/vision/analyze/route";
 
@@ -42,12 +40,9 @@ export default function NuevoReportePage() {
   const [showCamera, setShowCamera] = useState(false);
   const [showAudio, setShowAudio] = useState(false);
   const [fotos, setFotos] = useState<File[]>([]);
-  const [fotosUrls, setFotosUrls] = useState<string[]>([]); // URLs temporales para análisis IA
+  const [fotosUrls, setFotosUrls] = useState<string[]>([]);
   const [audios, setAudios] = useState<{ file: File; duration: number }[]>([]);
   const [loading, setLoading] = useState(false);
-  const [plantillas, setPlantillas] = useState<any[]>([]);
-  const [proyectos, setProyectos] = useState<any[]>([]);
-  const [debugLogs, setDebugLogs] = useState<string[]>([]);
   const [analisisIA, setAnalisisIA] = useState<AnalisisIA | null>(null);
 
   const [formData, setFormData] = useState({
@@ -63,22 +58,6 @@ export default function NuevoReportePage() {
   });
 
   useEffect(() => {
-    fetchPlantillas();
-    // fetchProyectos(); // DESHABILITADO - tabla Proyecto no existe
-  }, []);
-
-  // Debug: Verificar estado para mostrar IA
-  useEffect(() => {
-    console.log('🔍 Estado IA:', {
-      fotos: fotos.length,
-      urls: fotosUrls.length,
-      tipo: formData.tipoTrabajo,
-      mostrar: fotos.length > 0 && !!formData.tipoTrabajo && fotosUrls.length > 0
-    });
-  }, [fotos.length, fotosUrls.length, formData.tipoTrabajo]);
-
-  // Actualizar dirección automáticamente cuando el GPS la obtenga
-  useEffect(() => {
     if (gps.direccion && !formData.direccion) {
       setFormData(prev => ({
         ...prev,
@@ -89,35 +68,6 @@ export default function NuevoReportePage() {
     }
   }, [gps.direccion, gps.comuna, gps.region]);
 
-  async function fetchPlantillas() {
-    try {
-      const { data } = await supabase
-        .from("PlantillaFormulario")
-        .select("*");
-
-      if (data) setPlantillas(data);
-    } catch (error) {
-      console.log('[Offline] No se pudieron cargar plantillas:', error);
-      // No hacer nada, simplemente no carga las plantillas
-    }
-  }
-
-  // DESHABILITADO - tabla Proyecto no existe
-  // async function fetchProyectos() {
-  //   try {
-  //     const { data } = await supabase
-  //       .from("Proyecto")
-  //       .select("*")
-  //       .eq("estado", "ACTIVO")
-  //       .order("nombre");
-
-  //     if (data) setProyectos(data);
-  //   } catch (error) {
-  //     console.log('[Offline] No se pudieron cargar proyectos:', error);
-  //     // No hacer nada, simplemente no carga los proyectos
-  //   }
-  // }
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setFormData({
       ...formData,
@@ -127,7 +77,6 @@ export default function NuevoReportePage() {
 
   const handleCapture = (file: File) => {
     setFotos([...fotos, file]);
-    // Crear URL temporal para análisis IA
     const url = URL.createObjectURL(file);
     setFotosUrls([...fotosUrls, url]);
   };
@@ -137,13 +86,11 @@ export default function NuevoReportePage() {
   };
 
   const removePhoto = (index: number) => {
-    // Liberar URL temporal
     if (fotosUrls[index]) {
       URL.revokeObjectURL(fotosUrls[index]);
     }
     setFotos(fotos.filter((_, i) => i !== index));
     setFotosUrls(fotosUrls.filter((_, i) => i !== index));
-    // Limpiar análisis IA si es la última foto
     if (index === fotos.length - 1) {
       setAnalisisIA(null);
     }
@@ -153,14 +100,6 @@ export default function NuevoReportePage() {
     setAudios(audios.filter((_, i) => i !== index));
   };
 
-  // Función para agregar logs de debug
-  const addDebugLog = (message: string) => {
-    const timestamp = new Date().toLocaleTimeString();
-    setDebugLogs(prev => [...prev, `[${timestamp}] ${message}`]);
-    console.log(message);
-  };
-
-  // Convertir File a base64
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -175,32 +114,21 @@ export default function NuevoReportePage() {
     setLoading(true);
 
     try {
-      // ===== MODO OFFLINE: Guardar localmente =====
       if (!isOnline) {
-        addDebugLog('🔴 MODO OFFLINE - Guardando localmente...');
-
-        // Convertir fotos a base64
-        addDebugLog(`📷 Convirtiendo ${fotos.length} fotos a base64...`);
         const fotosBase64: { data: string; nombre: string }[] = [];
         for (const foto of fotos) {
           const base64 = await fileToBase64(foto);
           fotosBase64.push({ data: base64, nombre: foto.name });
         }
-        addDebugLog(`✅ Fotos convertidas: ${fotosBase64.length}`);
 
-        // Convertir audio a base64
         let audioBase64: { data: string; nombre: string } | undefined;
         if (audios.length > 0) {
-          addDebugLog('🎤 Convirtiendo audio a base64...');
           const audio = audios[0];
           const base64 = await fileToBase64(audio.file);
           audioBase64 = { data: base64, nombre: audio.file.name };
-          addDebugLog('✅ Audio convertido');
         }
 
-        // Guardar en IndexedDB
-        addDebugLog('💾 Guardando en IndexedDB...');
-        const reporteId = await guardarReporteOffline({
+        await guardarReporteOffline({
           tipoTrabajo: formData.tipoTrabajo,
           supervisorId: "supervisor-001",
           proyectoId: "",
@@ -213,10 +141,7 @@ export default function NuevoReportePage() {
           fotos: fotosBase64,
           audio: audioBase64,
         });
-        addDebugLog(`✅ Guardado con ID: ${reporteId}`);
-        addDebugLog('✅ COMPLETADO - Reporte guardado exitosamente');
 
-        // Limpiar formulario
         setFormData({
           tipoTrabajo: "",
           clienteFinal: "",
@@ -231,35 +156,26 @@ export default function NuevoReportePage() {
         setFotos([]);
         setAudios([]);
 
-        alert("✅ Reporte guardado localmente\n\nSe enviará cuando haya conexión.\n\nPuedes crear más reportes o ver los pendientes en el menú.");
-
+        alert("Reporte guardado localmente. Se enviará cuando haya conexión.");
         return;
       }
 
-      // ===== MODO ONLINE: Enviar a Supabase =====
-      console.log('[Online] Enviando reporte a Supabase...');
-
-      // 1. Subir fotos a Supabase Storage
-      const fotosUrls: string[] = [];
+      const fotosUrlsArray: string[] = [];
       for (const foto of fotos) {
         const path = `${Date.now()}-${foto.name}`;
         const { url, error } = await uploadFile("reportes-fotos", path, foto);
-
         if (error) throw error;
-        if (url) fotosUrls.push(url);
+        if (url) fotosUrlsArray.push(url);
       }
 
-      // 1b. Subir audios a Supabase Storage
       const audiosData: { url: string; duration: number }[] = [];
       for (const audio of audios) {
         const path = `${Date.now()}-${audio.file.name}`;
         const { url, error } = await uploadFile("reportes-audios", path, audio.file);
-
         if (error) throw error;
         if (url) audiosData.push({ url, duration: audio.duration });
       }
 
-      // 2. Crear reporte
       const { data: reporte, error: reporteError} = await supabase
         .from("Reporte")
         .insert({
@@ -274,9 +190,8 @@ export default function NuevoReportePage() {
           region: formData.region,
           latitud: gps.latitude,
           longitud: gps.longitude,
-          supervisorId: "supervisor-001", // Por ahora hardcodeado
+          supervisorId: "supervisor-001",
           status: "ENVIADO",
-          // Campos de IA
           analisis_ia: analisisIA || null,
           conformidad_ia: analisisIA?.cumplimiento_general || null,
           puntuacion_ia: analisisIA?.puntuacion || null,
@@ -287,9 +202,8 @@ export default function NuevoReportePage() {
 
       if (reporteError) throw reporteError;
 
-      // 3. Crear registros de fotos
-      if (fotosUrls.length > 0 && reporte) {
-        const fotosDataInsert = fotosUrls.map((url, index) => ({
+      if (fotosUrlsArray.length > 0 && reporte) {
+        const fotosDataInsert = fotosUrlsArray.map((url, index) => ({
           url,
           reporteId: reporte.id,
           orden: index,
@@ -302,7 +216,6 @@ export default function NuevoReportePage() {
         if (fotosError) throw fotosError;
       }
 
-      // 4. Crear registros de audios
       if (audiosData.length > 0 && reporte) {
         const audiosDataInsert = audiosData.map((audio) => ({
           url: audio.url,
@@ -317,440 +230,381 @@ export default function NuevoReportePage() {
         if (audiosError) throw audiosError;
       }
 
-      alert("✅ Reporte enviado exitosamente!");
+      alert("Reporte enviado exitosamente!");
       router.push("/reportes");
     } catch (error: any) {
       console.error("Error:", error);
-      addDebugLog(`❌ ERROR: ${error.message}`);
-      addDebugLog(`Stack: ${error.stack || 'No stack trace'}`);
-      alert("❌ Error al crear reporte: " + error.message);
+      alert("Error al crear reporte: " + error.message);
     } finally {
       setLoading(false);
     }
   }
 
-  const plantillaActual = plantillas.find(
-    (p) => p.tipoTrabajo === formData.tipoTrabajo
-  );
-
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-blue-100">
+      <div className="min-h-screen bg-gray-50">
         <Header />
-      <div className="max-w-2xl mx-auto space-y-6 py-6 px-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl text-blue-600">
-              Nuevo Reporte de Terreno
-            </CardTitle>
-            <CardDescription>
-              Complete los datos del reporte y capture fotos del trabajo realizado
-            </CardDescription>
-            <div className="mt-2 text-xs text-gray-500 font-mono">
-              v1.0.6-debug (Build: 2025-01-26-17:45)
-            </div>
-          </CardHeader>
-        </Card>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Información General */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Información General</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <Label htmlFor="tipoTrabajo">
-                  Tipo de Trabajo <span className="text-red-500">*</span>
-                </Label>
-                <select
-                  id="tipoTrabajo"
-                  name="tipoTrabajo"
-                  value={formData.tipoTrabajo}
-                  onChange={handleInputChange}
-                  required
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <option value="">Seleccione...</option>
-                  {TIPOS_TRABAJO.map((tipo) => (
-                    <option key={tipo.value} value={tipo.value}>
-                      {tipo.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 py-8">
+          {/* Header */}
+          <div className="mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Nuevo Reporte</h1>
+            <p className="text-gray-500 mt-1">Complete los datos del reporte</p>
+          </div>
 
-              {/* OCR para Orden de Trabajo - Temporarily disabled */}
-
-              <div>
-                <Label htmlFor="ordenTrabajo">Orden de Trabajo</Label>
-                <Input
-                  id="ordenTrabajo"
-                  name="ordenTrabajo"
-                  value={formData.ordenTrabajo}
-                  onChange={handleInputChange}
-                  placeholder="OT-2025-001"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="clienteFinal">Cliente Final</Label>
-                <Input
-                  id="clienteFinal"
-                  name="clienteFinal"
-                  value={formData.clienteFinal}
-                  onChange={handleInputChange}
-                  placeholder="Nombre del cliente"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="proyecto">Proyecto</Label>
-                <Input
-                  id="proyecto"
-                  name="proyecto"
-                  value={formData.proyecto}
-                  onChange={handleInputChange}
-                  placeholder="Ingrese nombre del proyecto (opcional)"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Ubicación con GPS */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Ubicación
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {gps.loading && (
-                <p className="text-sm text-gray-600 flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  {gps.latitude ? "Obteniendo dirección..." : "Obteniendo ubicación GPS..."}
-                </p>
-              )}
-              {gps.error && (
-                <p className="text-sm text-red-600">{gps.error}</p>
-              )}
-              {gps.latitude && gps.longitude && !gps.loading && (
-                <div className="p-3 bg-green-50 rounded-lg border border-green-200">
-                  <p className="text-sm font-semibold text-green-800">
-                    Ubicación capturada exitosamente ✓
-                  </p>
-                  <p className="text-xs text-green-700 mt-1">
-                    GPS: {gps.latitude.toFixed(6)}, {gps.longitude.toFixed(6)}
-                  </p>
-                  {gps.direccion && gps.direccion !== "Dirección no disponible" && (
-                    <p className="text-xs text-green-700 mt-1">
-                      📍 {gps.direccion}, {gps.comuna}
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div>
-                <Label htmlFor="direccion">Dirección</Label>
-                <Input
-                  id="direccion"
-                  name="direccion"
-                  value={formData.direccion}
-                  onChange={handleInputChange}
-                  placeholder="Calle y número"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="comuna">Comuna</Label>
-                  <Input
-                    id="comuna"
-                    name="comuna"
-                    value={formData.comuna}
-                    onChange={handleInputChange}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="region">Región</Label>
-                  <Input
-                    id="region"
-                    name="region"
-                    value={formData.region}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Descripción */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Descripción del Trabajo</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* IA Generativa para Descripción */}
-              {formData.tipoTrabajo && fotosUrls.length > 0 && (
-                <AIDescriptionGenerator
-                  tipoTrabajo={formData.tipoTrabajo as TipoTrabajo}
-                  imageUrls={fotosUrls}
-                  context={formData.proyecto}
-                  onGenerated={(descripcion) => {
-                    setFormData(prev => ({ ...prev, descripcion }));
-                  }}
-                />
-              )}
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="descripcion">Descripción</Label>
-                  <VoiceInput
-                    onTranscript={(text) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        descripcion: prev.descripcion + " " + text
-                      }));
-                    }}
-                  />
-                </div>
-                <Textarea
-                  id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleInputChange}
-                  rows={4}
-                  placeholder="Describa el trabajo realizado... (o use el micrófono para dictar)"
-                />
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label htmlFor="observaciones">Observaciones</Label>
-                  <VoiceInput
-                    onTranscript={(text) => {
-                      setFormData(prev => ({
-                        ...prev,
-                        observaciones: prev.observaciones + " " + text
-                      }));
-                    }}
-                  />
-                </div>
-                <Textarea
-                  id="observaciones"
-                  name="observaciones"
-                  value={formData.observaciones}
-                  onChange={handleInputChange}
-                  rows={3}
-                  placeholder="Observaciones adicionales... (o use el micrófono para dictar)"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Fotos */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera className="h-5 w-5" />
-                Fotografías ({fotos.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                type="button"
-                onClick={() => setShowCamera(true)}
-                className="w-full"
-                variant="outline"
-              >
-                <Camera className="h-5 w-5 mr-2" />
-                Capturar Foto
-              </Button>
-
-              {fotos.length > 0 && (
-                <div className="grid grid-cols-2 gap-3">
-                  {fotos.map((foto, index) => (
-                    <div key={index} className="relative group">
-                      <img
-                        src={URL.createObjectURL(foto)}
-                        alt={`Foto ${index + 1}`}
-                        className="w-full aspect-video object-cover rounded-lg border"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removePhoto(index)}
-                        className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Análisis IA de la última foto */}
-          {fotos.length > 0 && formData.tipoTrabajo && fotosUrls.length > 0 && (
-            <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-blue-50">
-              <CardHeader>
-                <CardTitle className="text-xl text-purple-700">
-                  🤖 Análisis Inteligente con IA
-                </CardTitle>
-                <CardDescription>
-                  Verifica automáticamente el cumplimiento de estándares de instalación
-                </CardDescription>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Tipo de trabajo */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Información General</CardTitle>
               </CardHeader>
-              <CardContent>
-                <AnalisisIAPanel
-                  fotoUrl={fotosUrls[fotosUrls.length - 1]}
-                  tipoEquipo={formData.tipoTrabajo as TipoTrabajo}
-                  onAnalisisCompleto={(analisis) => {
-                    setAnalisisIA(analisis);
-                    addDebugLog(`✅ Análisis IA completado: ${analisis.cumplimiento_general} (${analisis.puntuacion}/100)`);
-                  }}
-                  disabled={!isOnline}
-                />
-                {!isOnline && (
-                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm text-yellow-800">
-                    <WifiOff className="inline h-4 w-4 mr-2" />
-                    El análisis IA requiere conexión a internet. Podrás analizar cuando vuelva la conexión.
+              <CardContent className="space-y-4">
+                <div>
+                  <Label className="text-xs text-gray-500">Tipo de Trabajo *</Label>
+                  <select
+                    name="tipoTrabajo"
+                    value={formData.tipoTrabajo}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full h-10 rounded-md border border-input bg-white px-3 text-sm"
+                  >
+                    <option value="">Seleccione...</option>
+                    {TIPOS_TRABAJO.map((tipo) => (
+                      <option key={tipo.value} value={tipo.value}>
+                        {tipo.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">Orden de Trabajo</Label>
+                    <Input
+                      name="ordenTrabajo"
+                      value={formData.ordenTrabajo}
+                      onChange={handleInputChange}
+                      placeholder="OT-2025-001"
+                      className="bg-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Cliente</Label>
+                    <Input
+                      name="clienteFinal"
+                      value={formData.clienteFinal}
+                      onChange={handleInputChange}
+                      placeholder="Nombre cliente"
+                      className="bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-xs text-gray-500">Proyecto</Label>
+                  <Input
+                    name="proyecto"
+                    value={formData.proyecto}
+                    onChange={handleInputChange}
+                    placeholder="Nombre del proyecto"
+                    className="bg-white"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Ubicación */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-blue-600" />
+                  Ubicación
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {gps.loading && (
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Obteniendo ubicación...
+                  </div>
+                )}
+
+                {gps.latitude && gps.longitude && !gps.loading && (
+                  <div className="p-3 bg-emerald-50 rounded-lg flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <div className="text-sm">
+                      <span className="font-medium text-emerald-700">GPS capturado</span>
+                      <span className="text-emerald-600 ml-2">{gps.latitude.toFixed(4)}, {gps.longitude.toFixed(4)}</span>
+                    </div>
+                  </div>
+                )}
+
+                <div>
+                  <Label className="text-xs text-gray-500">Dirección</Label>
+                  <Input
+                    name="direccion"
+                    value={formData.direccion}
+                    onChange={handleInputChange}
+                    placeholder="Calle y número"
+                    className="bg-white"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label className="text-xs text-gray-500">Comuna</Label>
+                    <Input
+                      name="comuna"
+                      value={formData.comuna}
+                      onChange={handleInputChange}
+                      className="bg-white"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-gray-500">Región</Label>
+                    <Input
+                      name="region"
+                      value={formData.region}
+                      onChange={handleInputChange}
+                      className="bg-white"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Descripción */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Descripción</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {formData.tipoTrabajo && fotosUrls.length > 0 && (
+                  <AIDescriptionGenerator
+                    tipoTrabajo={formData.tipoTrabajo as TipoTrabajo}
+                    imageUrls={fotosUrls}
+                    context={formData.proyecto}
+                    onGenerated={(descripcion) => {
+                      setFormData(prev => ({ ...prev, descripcion }));
+                    }}
+                  />
+                )}
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-xs text-gray-500">Descripción del trabajo</Label>
+                    <VoiceInput
+                      onTranscript={(text) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          descripcion: prev.descripcion + " " + text
+                        }));
+                      }}
+                    />
+                  </div>
+                  <Textarea
+                    name="descripcion"
+                    value={formData.descripcion}
+                    onChange={handleInputChange}
+                    rows={3}
+                    placeholder="Describa el trabajo realizado..."
+                    className="bg-white"
+                  />
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <Label className="text-xs text-gray-500">Observaciones</Label>
+                    <VoiceInput
+                      onTranscript={(text) => {
+                        setFormData(prev => ({
+                          ...prev,
+                          observaciones: prev.observaciones + " " + text
+                        }));
+                      }}
+                    />
+                  </div>
+                  <Textarea
+                    name="observaciones"
+                    value={formData.observaciones}
+                    onChange={handleInputChange}
+                    rows={2}
+                    placeholder="Observaciones adicionales..."
+                    className="bg-white"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Fotos */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Camera className="h-4 w-4 text-pink-600" />
+                  Fotografías ({fotos.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={() => setShowCamera(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Camera className="h-4 w-4 mr-2" />
+                  Capturar Foto
+                </Button>
+
+                {fotos.length > 0 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {fotos.map((foto, index) => (
+                      <div key={index} className="relative group">
+                        <img
+                          src={URL.createObjectURL(foto)}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full aspect-video object-cover rounded-lg"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePhoto(index)}
+                          className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </CardContent>
             </Card>
-          )}
 
-          {/* Audios de Voz */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Mic className="h-5 w-5" />
-                Audios de Voz ({audios.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <Button
-                type="button"
-                onClick={() => setShowAudio(true)}
-                className="w-full"
-                variant="outline"
-              >
-                <Mic className="h-5 w-5 mr-2" />
-                Grabar Audio
-              </Button>
-
-              {audios.length > 0 && (
-                <div className="space-y-2">
-                  {audios.map((audio, index) => (
-                    <div key={index} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                        <Mic className="h-5 w-5 text-blue-600" />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-gray-900">Audio {index + 1}</p>
-                        <p className="text-xs text-gray-600">
-                          Duración: {Math.floor(audio.duration / 60)}:{(audio.duration % 60).toString().padStart(2, '0')}
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeAudio(index)}
-                        className="text-red-500 hover:text-red-700 p-2 rounded-full hover:bg-red-50 transition"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
+            {/* Análisis IA */}
+            {fotos.length > 0 && formData.tipoTrabajo && fotosUrls.length > 0 && (
+              <Card className="border-0 shadow-sm border-l-4 border-l-violet-500">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base text-violet-700">Análisis IA</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AnalisisIAPanel
+                    fotoUrl={fotosUrls[fotosUrls.length - 1]}
+                    tipoEquipo={formData.tipoTrabajo as TipoTrabajo}
+                    onAnalisisCompleto={(analisis) => {
+                      setAnalisisIA(analisis);
+                    }}
+                    disabled={!isOnline}
+                  />
+                  {!isOnline && (
+                    <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 flex items-center gap-2">
+                      <WifiOff className="h-4 w-4" />
+                      Requiere conexión a internet
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  )}
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Botón Submit */}
-          <Card>
-            <CardContent className="pt-6 space-y-3">
-              {/* Indicador de conexión */}
-              <div className={`p-3 rounded-lg border ${isOnline ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
-                <div className="flex items-center gap-2">
-                  {isOnline ? (
+            {/* Audios */}
+            <Card className="border-0 shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Mic className="h-4 w-4 text-cyan-600" />
+                  Audios ({audios.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <Button
+                  type="button"
+                  onClick={() => setShowAudio(true)}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <Mic className="h-4 w-4 mr-2" />
+                  Grabar Audio
+                </Button>
+
+                {audios.length > 0 && (
+                  <div className="space-y-2">
+                    {audios.map((audio, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                        <div className="w-8 h-8 bg-cyan-100 rounded-full flex items-center justify-center">
+                          <Mic className="h-4 w-4 text-cyan-600" />
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">Audio {index + 1}</p>
+                          <p className="text-xs text-gray-500">
+                            {Math.floor(audio.duration / 60)}:{(audio.duration % 60).toString().padStart(2, '0')}
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeAudio(index)}
+                          className="text-gray-400 hover:text-red-500"
+                        >
+                          <X className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Submit */}
+            <Card className="border-0 shadow-sm">
+              <CardContent className="pt-6 space-y-3">
+                <div className={`p-3 rounded-lg ${isOnline ? 'bg-emerald-50' : 'bg-amber-50'}`}>
+                  <div className="flex items-center gap-2">
+                    {isOnline ? (
+                      <>
+                        <Wifi className="h-4 w-4 text-emerald-600" />
+                        <span className="text-sm font-medium text-emerald-700">Online</span>
+                      </>
+                    ) : (
+                      <>
+                        <WifiOff className="h-4 w-4 text-amber-600" />
+                        <span className="text-sm font-medium text-amber-700">Offline - Se guardará localmente</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loading || !formData.tipoTrabajo}
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="lg"
+                >
+                  {loading ? (
                     <>
-                      <Wifi className="h-5 w-5 text-green-600" />
-                      <span className="text-sm font-medium text-green-800">
-                        Online - Se enviará inmediatamente
-                      </span>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Guardando...
                     </>
                   ) : (
                     <>
-                      <WifiOff className="h-5 w-5 text-yellow-600" />
-                      <span className="text-sm font-medium text-yellow-800">
-                        Offline - Se guardará localmente
-                      </span>
+                      <Save className="h-4 w-4 mr-2" />
+                      {isOnline ? 'Enviar Reporte' : 'Guardar Offline'}
                     </>
                   )}
-                </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading || !formData.tipoTrabajo}
-                className="w-full"
-                size="lg"
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="h-5 w-5 mr-2 animate-spin" />
-                    Guardando...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-5 w-5 mr-2" />
-                    {isOnline ? 'Enviar Reporte' : 'Guardar Offline'}
-                  </>
-                )}
-              </Button>
-            </CardContent>
-          </Card>
-        </form>
-      </div>
-
-      {showCamera && (
-        <CameraCapture
-          onCapture={handleCapture}
-          onClose={() => setShowCamera(false)}
-        />
-      )}
-
-      {showAudio && (
-        <AudioCapture
-          onCapture={handleAudioCapture}
-          onClose={() => setShowAudio(false)}
-        />
-      )}
-
-      {/* Panel de Debug - Solo visible en modo offline */}
-      {!isOnline && debugLogs.length > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 bg-black bg-opacity-90 text-white p-4 max-h-64 overflow-y-auto z-50">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold text-sm">📋 Debug Logs</h3>
-            <button
-              onClick={() => setDebugLogs([])}
-              className="text-xs bg-red-500 px-2 py-1 rounded"
-            >
-              Limpiar
-            </button>
-          </div>
-          <div className="space-y-1 text-xs font-mono">
-            {debugLogs.map((log, index) => (
-              <div key={index} className="border-b border-gray-700 pb-1">
-                {log}
-              </div>
-            ))}
-          </div>
+                </Button>
+              </CardContent>
+            </Card>
+          </form>
         </div>
-      )}
-    </div>
+
+        {showCamera && (
+          <CameraCapture
+            onCapture={handleCapture}
+            onClose={() => setShowCamera(false)}
+          />
+        )}
+
+        {showAudio && (
+          <AudioCapture
+            onCapture={handleAudioCapture}
+            onClose={() => setShowAudio(false)}
+          />
+        )}
+      </div>
     </ProtectedRoute>
   );
 }

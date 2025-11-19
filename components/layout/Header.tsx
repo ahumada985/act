@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Image as ImageIcon, Tag, Upload, Mountain, HardHat } from "lucide-react";
+import { Home, Search, X, FileText, Briefcase, BarChart3, Map, Upload, Users, Shield } from "lucide-react";
 import { contarReportesPendientes } from "@/lib/offline-storage";
 import { NotificationBell } from "@/components/notifications/NotificationBell";
 import { UserMenu } from "@/components/auth/UserMenu";
@@ -133,16 +133,16 @@ export function Header() {
           </div>
 
           {/* Barra de búsqueda */}
-          <div className="relative flex-1 max-w-md">
+          <div className="relative flex-1 max-w-xl">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
-                placeholder="Buscar reportes o proyectos..."
+                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => searchResults.length > 0 && setShowResults(true)}
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 h-10 w-full"
               />
               {searchTerm && (
                 <button
@@ -281,34 +281,23 @@ export function Header() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/galeria")}
-              title="Galería"
-              className="hidden lg:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
+              onClick={() => router.push("/cuadrillas")}
+              title="Cuadrillas"
+              className="hidden xl:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
-              <ImageIcon className="h-4 w-4" />
-              <span>Galería</span>
+              <Users className="h-4 w-4" />
+              <span>Cuadrillas</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => router.push("/etiquetas")}
-              title="Etiquetas"
+              onClick={() => router.push("/prevencion")}
+              title="Prevención"
               className="hidden xl:flex gap-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50"
             >
-              <Tag className="h-4 w-4" />
-              <span>Etiquetas</span>
+              <Shield className="h-4 w-4" />
+              <span>Prevención</span>
             </Button>
-            {/* Chat deshabilitado - página no disponible */}
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.push("/chat")}
-              title="Chat"
-              className="hidden md:flex gap-2"
-            >
-              <MessageSquare className="h-4 w-4" />
-              <span>Chat</span>
-            </Button> */}
 
             {/* Notificaciones y Usuario */}
             <div className="flex items-center gap-2 ml-2 pl-2 border-l border-gray-200">
