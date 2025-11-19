@@ -670,7 +670,7 @@ export default function ReportesPage() {
         ) : (
           /* Vista Cards agrupada por faena */
           <div className="space-y-6">
-            {Object.entries(reportesPorFaena).map(([faena, reportesGrupo]) => (
+            {Object.entries(reportesPorFaena).map(([faena, reportesGrupo]: [string, any[]]) => (
               <div key={faena} className="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
                 {/* Header de faena */}
                 <button
