@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Loader2, Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import Image from 'next/image';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -84,13 +85,28 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4">
       <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Northtek Reportes
-          </CardTitle>
-          <CardDescription className="text-center">
-            Inicia sesión para acceder al sistema
-          </CardDescription>
+        <CardHeader className="space-y-4">
+          {/* Logo Northtek */}
+          <div className="flex justify-center">
+            <div className="bg-blue-600 p-4 rounded-xl">
+              <Image
+                src="/logo.png"
+                alt="Northtek Logo"
+                width={150}
+                height={60}
+                priority
+                className="object-contain"
+              />
+            </div>
+          </div>
+          <div className="space-y-1">
+            <CardTitle className="text-2xl font-bold text-center">
+              Northtek Reportes
+            </CardTitle>
+            <CardDescription className="text-center">
+              Inicia sesión para acceder al sistema
+            </CardDescription>
+          </div>
         </CardHeader>
 
         <form onSubmit={handleLogin}>
